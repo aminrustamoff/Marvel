@@ -1,0 +1,23 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+venv1/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Database (keep your local data local)
+db.sqlite3
+
+# Sensitive environment variables
+.env
+
+# IDE-specific folders
+.vscode/
+.idea/
+
+# Static and Media files (usually handled by external storage in production)
+static/
+media/
