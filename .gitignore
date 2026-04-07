@@ -19,5 +19,5 @@ db.sqlite3
 .idea/
 
 # Static and Media files (usually handled by external storage in production)
-static/
-media/
+# static/
+# media/
