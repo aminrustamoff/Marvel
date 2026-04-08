@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IELTS Reading Test{% endblock %}</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        .header {
+            padding: 10px 20px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: red;
+            font-size: 20px;
+        }
+
+        .split-container {
+            display: flex;
+            height: calc(100vh - 50px);
+        }
+
+        .split-left,
+        .split-right {
+            flex: 1;
+            min-width: 200px;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .split-left {
+            border-right: 1px solid #eee;
+        }
+
+        .resizer {
+            width: 5px;
+            cursor: col-resize;
+            background-color: #ccc;
+        }
+
+        .resizer:hover {
+            background-color: #888;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .question {
+            margin-bottom: 20px;
+        }
+
+        .question h4 {
+            margin-bottom: 8px;
+        }
+
+        .options label {
+            display: block;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .part-title {
+            margin-bottom: 15px;
+        }
+
+        .part-title strong {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>IELTS</h1>
+    <div>59 minutes remaining</div>
+</div>
+
+<div class="split-container">
+
+    <!-- LEFT SIDE -->
+    <div class="split-left">
+        {% block content_left %}
+
+        <div class="part-title">
+            <strong>Part 1</strong>
+            <span>Read the text and answer questions 1–13.</span>
+        </div>
+
+        <h2>The life and work of Marie Curie</h2>
+
+        <p>
+            Marie Curie is probably the most famous woman scientist who has ever lived.
+            Born Maria Sklodowska in Poland in 1867, she is famous for her work on radioactivity,
+            and was twice a winner of the Nobel Prize.
+        </p>
+
+        <p>
+            From childhood, Marie was remarkable for her prodigious memory, and at the age of 16
+            won a gold medal on completing her secondary education.
+        </p>
+
+        <p>
+            In 1891 this promise was fulfilled and Marie went to Paris and began to study at the Sorbonne.
+            She often worked far into the night and lived on little more than bread and butter.
+        </p>
+
+        <p>
+            Their marriage in 1895 marked the start of a partnership that was soon to achieve results
+            of world significance.
+        </p>
+
+        {% endblock %}
+    </div>
+
+    <!-- RESIZER -->
+    <div class="resizer" id="resizer"></div>
+
+    <!-- RIGHT SIDE -->
+    <div class="split-right">
+        {% block content_right %}
+
+        <h3>Questions 1–6</h3>
+        <p>
+            Choose TRUE if the statement agrees with the information given in the text,
+            choose FALSE if the statement contradicts the information,
+            or choose NOT GIVEN if there is no information.
+        </p>
+
+        <!-- Question 1 -->
+        <div class="question">
+            <h4>1. Marie Curie’s husband was a joint winner of both Marie’s Nobel Prizes.</h4>
+            <div class="options">
+                <label><input type="radio" name="q1"> TRUE</label>
+                <label><input type="radio" name="q1"> FALSE</label>
+                <label><input type="radio" name="q1"> NOT GIVEN</label>
+            </div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="question">
+            <h4>2. Marie became interested in science when she was a child.</h4>
+            <div class="options">
+                <label><input type="radio" name="q2"> TRUE</label>
+                <label><input type="radio" name="q2"> FALSE</label>
+                <label><input type="radio" name="q2"> NOT GIVEN</label>
+            </div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="question">
+            <h4>3. Marie was able to attend the Sorbonne because of her sister’s financial contribution.</h4>
+            <div class="options">
+                <label><input type="radio" name="q3"> TRUE</label>
+                <label><input type="radio" name="q3"> FALSE</label>
+                <label><input type="radio" name="q3"> NOT GIVEN</label>
+            </div>
+        </div>
+
+        {% endblock %}
+    </div>
+
+</div>
+
+<script>
+    const resizer = document.getElementById('resizer');
+    const left = document.querySelector('.split-left');
+    const right = document.querySelector('.split-right');
+
+    let isDragging = false;
+
+    resizer.addEventListener('mousedown', () => {
+        isDragging = true;
+        document.body.style.cursor = 'col-resize';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        let containerWidth = document.querySelector('.split-container').offsetWidth;
+        let leftWidth = (e.clientX / containerWidth) * 100;
+
+        left.style.flex = "none";
+        left.style.width = leftWidth + "%";
+        right.style.flex = "1";
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+        document.body.style.cursor = 'default';
+    });
+</script>
+
+</body>
+</html>

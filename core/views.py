@@ -5,3 +5,8 @@ from django.shortcuts import render, HttpResponse
 def home(request):
     return render(request, 'core/main.html')
 
+def listening(request):
+    return HttpResponse("Listening test page")
+
+def reading(request):
+    return render(request, 'core/reading.html')
