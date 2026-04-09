@@ -1,6 +1,91 @@
-{% extends 'core/test_base.html' %}
+{% extends 'core/base.html' %}
 
 {% load static %}
 
-{% block title %}Reading Test{% endblock %}
+{% block title %}IELTS Reading Test{% endblock %}
+
+{% block content %}
+
+<div class="split-container">
+
+    <!-- LEFT SIDE -->
+    <div class="split-left">
+
+        <div class="part-title">
+            <strong>Part 1</strong>
+            <span>Read the text and answer questions 1–13.</span>
+        </div>
+
+        <h2>The life and work of Marie Curie</h2>
+
+        <p>
+            Marie Curie is probably the most famous woman scientist who has ever lived.
+            Born Maria Sklodowska in Poland in 1867, she is famous for her work on radioactivity,
+            and was twice a winner of the Nobel Prize.
+        </p>
+
+        <p>
+            From childhood, Marie was remarkable for her prodigious memory, and at the age of 16
+            won a gold medal on completing her secondary education.
+        </p>
+
+        <p>
+            In 1891 this promise was fulfilled and Marie went to Paris and began to study at the Sorbonne.
+            She often worked far into the night and lived on little more than bread and butter.
+        </p>
+
+        <p>
+            Their marriage in 1895 marked the start of a partnership that was soon to achieve results
+            of world significance.
+        </p>
+
+    </div>
+
+    <!-- RESIZER -->
+    <div class="resizer" id="resizer"></div>
+
+    <!-- RIGHT SIDE -->
+    <div class="split-right">
+
+        <h3>Questions 1–6</h3>
+        <p>
+            Choose TRUE if the statement agrees with the information given in the text,
+            choose FALSE if the statement contradicts the information,
+            or choose NOT GIVEN if there is no information.
+        </p>
+
+        <!-- Question 1 -->
+        <div class="question">
+            <h4>1. Marie Curie’s husband was a joint winner of both Marie’s Nobel Prizes.</h4>
+            <div class="options">
+                <label><input type="radio" name="q1"> TRUE</label>
+                <label><input type="radio" name="q1"> FALSE</label>
+                <label><input type="radio" name="q1"> NOT GIVEN</label>
+            </div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="question">
+            <h4>2. Marie became interested in science when she was a child.</h4>
+            <div class="options">
+                <label><input type="radio" name="q2"> TRUE</label>
+                <label><input type="radio" name="q2"> FALSE</label>
+                <label><input type="radio" name="q2"> NOT GIVEN</label>
+            </div>
+        </div>
+
+        <!-- Question 3 -->
+        <div class="question">
+            <h4>3. Marie was able to attend the Sorbonne because of her sister’s financial contribution.</h4>
+            <div class="options">
+                <label><input type="radio" name="q3"> TRUE</label>
+                <label><input type="radio" name="q3"> FALSE</label>
+                <label><input type="radio" name="q3"> NOT GIVEN</label>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
 

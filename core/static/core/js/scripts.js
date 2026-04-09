@@ -1,28 +1,28 @@
-const resizer = document.querySelector('.resizer');
-const leftPanel = document.querySelector('.split-left');
+// READING PAGE SCRIPTS
 
-resizer.addEventListener('mousedown', (e) => {
-    resizer.classList.add('active');
+const resizer = document.getElementById('resizer');
+const left = document.querySelector('.split-left');
+const right = document.querySelector('.split-right');
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', () => {
-        resizer.classList.remove('active');
-        document.removeEventListener('mousemove', onMouseMove);
-    });
+let isDragging = false;
+
+resizer.addEventListener('mousedown', () => {
+    isDragging = true;
+    document.body.style.cursor = 'col-resize';
 });
 
-function onMouseMove(e) {
-    const container = document.querySelector('.split-container');
-    const containerRect = container.getBoundingClientRect();
-    const newLeftWidth = e.clientX - containerRect.left;
-    leftPanel.style.flex = 'none';
-    leftPanel.style.width = newLeftWidth + 'px';
-}
+document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
 
-function toggleAccordion(button) {
-    const body = button.nextElementSibling;
-    const arrow = button.querySelector('.accordion-arrow');
+    let containerWidth = document.querySelector('.split-container').offsetWidth;
+    let leftWidth = (e.clientX / containerWidth) * 100;
 
-    body.classList.toggle('open');
-    arrow.classList.toggle('open');
-}
+    left.style.flex = "none";
+    left.style.width = leftWidth + "%";
+    right.style.flex = "1";
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+    document.body.style.cursor = 'default';
+});
