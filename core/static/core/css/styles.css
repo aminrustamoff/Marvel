@@ -1,3 +1,16 @@
+.header {
+    padding: 10px 20px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header h1 {
+    color: red;
+    font-size: 20px;
+}
+
+
 .accordion {
     width: 70%;
     margin: 0 auto;
@@ -71,3 +84,72 @@
 .section-link:hover {
     text-decoration: underline;
 }
+
+/* NAVBAR SETTINGS */
+
+/* Basic Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  line-height: 1.6;
+}
+
+.logo {
+    width: 100px;
+    height: 100%;
+    object-fit: contain;
+    margin: 0%;
+}
+
+/* The Sticky Navbar */
+.navbar {
+  position: -webkit-sticky; /* For Safari support */
+  position: sticky;
+  top: 0;
+  z-index: 1000; /* Ensures it stays above other content */
+  
+  /* Styling */
+  background-color: #ffffff;
+  color: red;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0rem 2rem;
+  box-shadow: 0 2px 5px rgb(211, 211, 211);
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+}
+
+.nav-links li {
+  margin-left: 20px;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.nav-icon {
+  width: 30px;  /* Set a fixed width */
+  height: 30px; /* Set a fixed height */
+  object-fit: contain; /* Ensures the icon doesn't distort */
+  margin-left: 30px;
+}
+
+/* Spacer for visual effect */
+.content {
+  padding: 2rem;
+  height: 2000px; /* Just to make the page scrollable */
+  background: linear-gradient(to bottom, #f4f4f4, #ddd);
+}
+
+/* NAVBAR SETTINGS END */
