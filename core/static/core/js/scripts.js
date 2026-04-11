@@ -29,6 +29,17 @@ function toggleAccordion(button) {
     arrow.classList.toggle('open');
 }
 
+
+// LISTENING PAGE SCRIPTS
+
+ const audio = document.getElementById('test-audio');
+
+// Plays on the very first click anywhere on the page
+document.addEventListener('click', function() {
+    audio.play();
+}, { once: true }); // '{ once: true }' ensures it only runs once
+
+
 // READING PAGE SCRIPTS
 
 const resizer = document.getElementById('resizer');
@@ -41,6 +52,7 @@ resizer.addEventListener('mousedown', () => {
     isDragging = true;
     document.body.style.cursor = 'col-resize';
 });
+
 
 document.addEventListener('mousemove', (e) => {
     if (!isDragging) return;
@@ -57,3 +69,4 @@ document.addEventListener('mouseup', () => {
     isDragging = false;
     document.body.style.cursor = 'default';
 });
+

@@ -1,6 +1,210 @@
 {% extends 'core/base.html' %}
-
 {% load static %}
 
-{% block  content %}
+{% block content %}
+
+<style>
+/* Hide all sections initially */
+.section {
+    display: none;
+}
+
+/* Bottom tab bar */
+#section-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+
+    background: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border: 1px solid #919191;
+}
+
+/* Buttons */
+#section-tabs button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px;
+    color: black;
+    background: #ffffff;
+    border: none;
+    cursor: pointer;
+    border: 1px solid #ddd;
+}
+
+/* Active tab */
+#section-tabs button.active {
+    border: 1px solid black;
+    background: #d1d1d1;
+    color: black;
+}
+
+.listening-text-container {
+    margin-bottom: 100px;
+    margin-top: 80px;
+    padding-left: 100px;
+    padding-right: 100px;
+    display: flex;
+    max-width: 100%;
+    flex: 1;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+/* #test-content { display: none; } */
+
+/* Overlay */
+#start-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    color: rgb(255, 28, 28);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    z-index: 9999;
+}
+
+/* Timer */
+#timer {
+    position: fixed;
+    top: 80px;
+    right: 30px;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Hide sections initially */
+.section { display: none; }
+
+/* Button */
+#start-btn {
+    padding: 15px 30px;
+    font-size: 20px;
+    cursor: pointer;
+}
+</style>
+
+<!-- START SCREEN -->
+<div id="start-overlay">
+    <h2>IELTS Listening Test</h2>
+    <button id="start-btn">Start Test</button>
+</div>
+
+<!-- TIMER -->
+<div id="timer">00:00</div>
+
+<!-- MAIN CONTENT -->
+<div id="test-content" class="listening-text-container">
+    <h1>Test #{{ test.test_number }}: {{ test.test_title }}</h1>
+
+    <!-- AUDIO -->
+    <audio id="audio-player">
+        <source src="{{ test.audio_file.url }}" type="audio/mpeg">
+    </audio>
+
+    <hr>
+
+    <!-- SECTIONS -->
+    <div class="section" id="section1">
+        <h2>Section 1</h2>
+        <p>{{ test.section_1|safe }}</p>
+    </div>
+
+    <div class="section" id="section2">
+        <h2>Section 2</h2>
+        <p>{{ test.section_2|safe }}</p>
+    </div>
+
+    <div class="section" id="section3">
+        <h2>Section 3</h2>
+        <p>{{ test.section_3|safe }}</p>
+    </div>
+
+    <div class="section" id="section4">
+        <h2>Section 4</h2>
+        <p>{{ test.section_4|safe }}</p>
+    </div>
+</div>
+
+<div id="section-tabs">
+    <button onclick="showSection(1)" id="tab1">Section 1</button>
+    <button onclick="showSection(2)" id="tab2">Section 2</button>
+    <button onclick="showSection(3)" id="tab3">Section 3</button>
+    <button onclick="showSection(4)" id="tab4">Section 4</button>
+</div>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const overlay = document.getElementById("start-overlay");
+const content = document.getElementById("test-content");
+const audio = document.getElementById("audio-player");
+const timerEl = document.getElementById("timer");
+
+let seconds = 0;
+let timerInterval;
+
+/* ⏱ TIMER FUNCTION */
+function startTimer() {
+    timerInterval = setInterval(() => {
+        seconds++;
+        let mins = String(Math.floor(seconds / 60)).padStart(2, '0');
+        let secs = String(seconds % 60).padStart(2, '0');
+        timerEl.innerText = `${mins}:${secs}`;
+    }, 1000);
+}
+
+/* 📄 SECTION CONTROL BASED ON AUDIO TIME */
+function showSection(num) {
+    // Hide all sections
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById("section" + i).style.display = "none";
+        document.getElementById("tab" + i).classList.remove("active");
+    }
+
+    // Show selected
+    document.getElementById("section" + num).style.display = "block";
+    document.getElementById("tab" + num).classList.add("active");
+}
+
+/* Default section when test starts */
+startBtn.addEventListener("click", () => {
+    overlay.style.display = "none";
+    content.style.display = "block";
+
+    audio.play();
+    startTimer();
+
+    showSection(1); // 👈 show first section by default
+});
+
+/* 🔒 DISABLE SEEK + PAUSE */
+audio.addEventListener("seeking", () => {
+    audio.currentTime = audio.currentTime; // block seeking
+});
+
+audio.addEventListener("pause", () => {
+    audio.play(); // prevent pause
+});
+
+/* 🚫 PREVENT REFRESH */
+window.onbeforeunload = function () {
+    return "Test is in progress!";
+};
+
+/* ▶ START TEST */
+startBtn.addEventListener("click", () => {
+    overlay.style.display = "none";
+    content.style.display = "block";
+
+    audio.play();
+    startTimer();
+});
+</script>
+
 {% endblock %}

@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
-    'django_tiptap',
+    'django_prose_editor',
 ]
 
 MIDDLEWARE = [

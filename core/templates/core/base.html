@@ -8,17 +8,19 @@
     <title>{% block title %}Default Title{% endblock %}</title>
 </head>
 <body>
-    <nav class="navbar">
-    <img class="logo" src="{% static 'core/icons/ielts-logo.png' %}"</div>
-    <ul class="nav-links">
-        <img class="nav-icon" src="{% static 'core/icons/wifi.svg' %}">
-        <img class="nav-icon" src="{% static 'core/icons/bell.svg' %}">
-        <img class="nav-icon" src="{% static 'core/icons/menu-burger.svg' %}">
-        <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
-    </ul>
-    </nav>
-    {% block content %}
-    {% endblock %}
+    <div class="navbar">
+        <img class="logo" src="{% static 'core/icons/ielts-logo.png' %}">
+        <ul class="nav-links">
+            <img class="nav-icon" src="{% static 'core/icons/wifi.svg' %}">
+            <img class="nav-icon" src="{% static 'core/icons/bell.svg' %}">
+            <img class="nav-icon" src="{% static 'core/icons/menu-burger.svg' %}">
+            <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
+        </ul>
+    </div>
+    <div class="test-area">
+        {% block content %}
+        {% endblock %}
+    </div>
 </body>
 <script src="{% static 'core/js/scripts.js' %}"></script>
 </html>

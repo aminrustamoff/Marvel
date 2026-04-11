@@ -1,22 +1,21 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+html, body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 /* MAIN PAGE STYLES */
 
 .test {
     display: flex;
     overflow: scroll;
 }
-
-.header {
-    padding: 10px 20px;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.header h1 {
-    color: red;
-    font-size: 20px;
-}
-
 
 .accordion {
     width: 70%;
@@ -100,16 +99,6 @@
 /* NAVBAR SETTINGS */
 
 /* Basic Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  font-family: sans-serif;
-  line-height: 1.6;
-}
 
 .logo {
     width: 100px;
@@ -120,14 +109,17 @@ body {
 
 /* The Sticky Navbar */
 .navbar {
-  position: -webkit-sticky; /* For Safari support */
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  width: 100%;
+  /* position: -webkit-sticky; For Safari support */
+  /* position: fixed; 
+  top: 0; */
   z-index: 1000; /* Ensures it stays above other content */
   
   /* Styling */
   background-color: #ffffff;
-  color: red;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -167,31 +159,15 @@ body {
 /* NAVBAR SETTINGS END */
 
 
+/* LISTENING PAGE STYLES---------------------------------------------------------------------------------------- */
+
+
+
+/* LISTENING PAGE STYLES END*/
+
+
 /* READING PAGE STYLES */
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: Arial, sans-serif;
-}
-html, body {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-.header {
-    padding: 10px 20px;
-    border-bottom: 1px solid #ddd;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-shrink: 0;
-}
-.header h1 {
-    color: red;
-    font-size: 20px;
-}
 .split-container {
     display: flex;
     max-width: 100%;
