@@ -85,11 +85,15 @@ html, body {
 }
 
 .section-link {
-    display: inline-block;
+    display: start;
     margin-top: 8px;
     color: #007bff;
     text-decoration: none;
     font-size: 0.95rem;
+    background-color: rgb(28, 15, 0);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
 }
 
 .section-link:hover {

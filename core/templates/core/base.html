@@ -14,7 +14,8 @@
             <img class="nav-icon" src="{% static 'core/icons/wifi.svg' %}">
             <img class="nav-icon" src="{% static 'core/icons/bell.svg' %}">
             <img class="nav-icon" src="{% static 'core/icons/menu-burger.svg' %}">
-            <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
+            {% block nav_links %}
+            {% endblock %}
         </ul>
     </div>
     <div class="test-area">
