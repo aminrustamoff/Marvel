@@ -3,6 +3,9 @@
 
 {% block title %}Listening Test{% endblock %}
 {% block nav_links %}
+<!-- TIMER -->
+<div id="timer">{{ duration }}</div>
+<button onclick="submitAnswers()">Submit</button>
 <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
 {% endblock %}
 
@@ -78,10 +81,10 @@
 /* Timer */
 #timer {
     position: fixed;
-    top: 80px;
-    right: 30px;
-    font-size: 20px;
-    font-weight: bold;
+    top: 30px;
+    left: 140px;
+    font-size: 15px;
+    z-index: 10000;
 }
 
 /* Hide sections initially */
@@ -93,6 +96,183 @@
     font-size: 20px;
     cursor: pointer;
 }
+
+/* section instructions */
+
+section-instructions-title {
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+
+.instruction {
+    border: 2px solid #e0e0de;
+    background: #f0f0e9;
+    border-radius: 6px;
+    padding: 10px 15px;
+    margin: .8rem 0;
+}
+
+
+/* ============================ */
+
+/* ───── Base ───── */
+/* body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  line-height: 1.6;
+  max-width: 860px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  color: #222;
+  background: #fafafa;
+} */
+ 
+/* ───── Fill input ───── */
+.fill-input {
+  display: inline-block;
+  border-radius: 4px;
+  border: 2px solid #9c9c9c;
+  background: transparent;
+  font-size: 1em;
+  padding: 2px 6px;
+  margin: 2px 6px;
+  min-width: 120px;
+  outline: none;
+  color: #111;
+}
+.fill-input:focus { border: 2px solid #0077cc; }
+ 
+/* ───── MCH Q / M ───── */
+.mchq, .mchm-list {
+  list-style: none;
+  padding: .2rem 0;
+  margin: .6rem 0;
+}
+.mchq-option, .mchm-option {
+  margin: .35rem 0;
+  width: fit-content;
+  height: 30px;
+}
+.mchq-option label,
+.mchm-option label {
+  display: inline-flex;
+  align-items: baseline;
+  padding-left: .2rem;
+  gap: .5rem;
+  cursor: pointer;
+}
+
+.mchq-option :hover{
+  background-color: #c6e7ff;
+  background-size: 40px 200px;
+}
+
+.option-key {
+  font-weight: 700;
+  min-width: 1.6em;
+}
+.mchm { margin: .6rem 0;}
+.mchm-ids { margin-bottom: .4rem; }
+.qid-badge {
+  display: inline-block;
+  background: #0077cc;
+  color: #fff;
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-size: .75em;
+  margin-right: 4px;
+}
+ 
+/* ───── Match ───── */
+.match-widget {
+  display: flex;
+  gap: 2rem;
+  margin: 1rem 20px;
+  align-items: flex-start;
+}
+.match-left  { flex: 1; display: flex; align-items: baseline; flex-direction: column; gap: .7rem; }
+.match-right { flex: 1; display: flex; flex-direction: column; align-items: baseline; gap: .6rem; }
+ 
+.match-left-row {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+}
+.match-prompt { flex: 1; }
+ 
+.match-drop-zone {
+  min-width: 110px;
+  min-height: 36px;
+  border: 2px dashed #aaa;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  background: #f4f4f4;
+  transition: background .15s, border-color .15s;
+  position: relative;
+}
+.match-drop-zone.drag-over {
+  background: #e0f0ff;
+  border-color: #0077cc;
+}
+.match-drop-zone.filled { border-style: solid; background: #eaf7ea; }
+.drop-hint { color: #bbb; font-size: .85em; pointer-events: none; }
+ 
+.match-chip {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 6px 12px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: grab;
+  user-select: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  transition: opacity .15s, transform .1s;
+}
+.match-chip:active { cursor: grabbing; }
+.match-chip.dragging { opacity: .45; transform: scale(.97); }
+.chip-key {
+  font-weight: 700;
+  background: #0077cc;
+  color: #fff;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: .8em;
+}
+ 
+/* ───── Box ───── */
+.text-box {
+  display: inline-block;
+  border: 2px solid #444;
+  border-radius: 5px;
+  padding: .5rem 1rem;
+  margin: .5rem 0;
+  background: #fff;
+  max-width: 100%;
+  white-space: pre-wrap;
+}
+ 
+/* ───── Guide ───── */
+.guide-box {
+  border-left: 4px solid #0077cc;
+  background: #f0f7ff;
+  border-radius: 6px;
+  padding: .75rem 1.2rem;
+  margin: .8rem 0;
+}
+.guide-title {
+  font-weight: 700;
+  font-size: 1.05em;
+  margin-bottom: .35rem;
+  color: #0055aa;
+}
+.guide-body { color: #333; }
+
+
+
 </style>
 
 <!-- START SCREEN -->
@@ -101,39 +281,47 @@
     <button id="start-btn">Start Test</button>
 </div>
 
-<!-- TIMER -->
-<div id="timer">00:00</div>
+
 
 <!-- MAIN CONTENT -->
 <div id="test-content" class="listening-text-container">
-    <h1>Test #{{ test.test_number }}: {{ test.test_title }}</h1>
 
     <!-- AUDIO -->
     <audio id="audio-player">
         <source src="{{ test.audio_file.url }}" type="audio/mpeg">
     </audio>
 
-    <hr>
-
     <!-- SECTIONS -->
     <div class="section" id="section1">
-        <h2>Section 1</h2>
-        <p>{{ test.section_1|safe }}</p>
+        <div class="instruction">
+            <h2 id="section-instructions-title">Part 1</h2>
+            <p>Listen and answer the questions 1 - 10.</p>
+        </div>
+        <p>{{ section1_html|safe }}</p>
     </div>
 
     <div class="section" id="section2">
-        <h2>Section 2</h2>
-        <p>{{ test.section_2|safe }}</p>
+        <div class="instruction">
+            <h2 id="section-instructions-title">Part 2</h2>
+            <p>Listen and answer the questions 11 - 20.</p>
+        </div>
+        <p>{{ section2_html|safe }}</p>
     </div>
 
     <div class="section" id="section3">
-        <h2>Section 3</h2>
-        <p>{{ test.section_3|safe }}</p>
+        <div class="instruction">
+            <h2 id="section-instructions-title">Part 3</h2>
+            <p>Listen and answer the questions 21 - 30.</p>
+        </div>
+        <p>{{ section3_html|safe }}</p>
     </div>
 
     <div class="section" id="section4">
-        <h2>Section 4</h2>
-        <p>{{ test.section_4|safe }}</p>
+        <div class="instruction">
+            <h2 id="section-instructions-title">Part 4</h2>
+            <p>Listen and answer the questions 31 - 40.</p>
+        </div>
+        <p>{{ section4_html|safe }}</p>
     </div>
 </div>
 
@@ -150,17 +338,43 @@ const overlay = document.getElementById("start-overlay");
 const content = document.getElementById("test-content");
 const audio = document.getElementById("audio-player");
 const timerEl = document.getElementById("timer");
-
-let seconds = 0;
+const navbarCol = document.getElementById("navbar");
 let timerInterval;
+let totalSeconds;
 
-/* ⏱ TIMER FUNCTION */
+function parseTime(timeStr) {
+    const [mins, secs] = timeStr.split(":").map(Number);
+    return mins * 60 + secs + 120; // add 2 minutes buffer
+}
+
 function startTimer() {
+    // Get time from HTML
+    totalSeconds = parseTime(timerEl.innerText);
+
     timerInterval = setInterval(() => {
-        seconds++;
-        let mins = String(Math.floor(seconds / 60)).padStart(2, '0');
-        let secs = String(seconds % 60).padStart(2, '0');
-        timerEl.innerText = `${mins}:${secs}`;
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerEl.innerText = "00:00";
+            submitAnswers();
+            return;
+        }
+
+        totalSeconds--;
+
+        let mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        let secs = String(totalSeconds % 60).padStart(2, '0');
+
+        
+        if (totalSeconds <= 60) {
+            timerEl.innerText = `${secs} seconds remaining.`;
+            navbarCol.style.backgroundColor = "#e3b6b9";
+        }
+        else if (totalSeconds > 300) {
+            timerEl.innerText = `${mins} minutes remaining.`;
+        }
+        else if (totalSeconds <= 300) {
+            timerEl.innerText = `${mins} minutes ${secs} seconds remaining.`;
+        }
     }, 1000);
 }
 
@@ -202,14 +416,149 @@ window.onbeforeunload = function () {
     return "Test is in progress!";
 };
 
-/* ▶ START TEST */
-startBtn.addEventListener("click", () => {
-    overlay.style.display = "none";
-    content.style.display = "block";
-
-    audio.play();
-    startTimer();
+/* ═══════════════════════════════════
+   Drag-and-Drop for [match] blocks
+   ═══════════════════════════════════ */
+let _draggedChip = null;
+ 
+function matchDragStart(e) {
+  _draggedChip = e.currentTarget;
+  _draggedChip.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', _draggedChip.dataset.value);
+}
+ 
+function matchDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+}
+ 
+function matchDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+ 
+function matchDrop(e) {
+  e.preventDefault();
+  const zone = e.currentTarget;
+  zone.classList.remove('drag-over');
+ 
+  if (!_draggedChip) return;
+ 
+  const value = _draggedChip.dataset.value;
+ 
+  // If the zone already has a chip, send it back to the palette
+  const existing = zone.querySelector('.match-chip');
+  if (existing) {
+    const palette = document.querySelector('.match-right');
+    if (palette) palette.appendChild(existing);
+    existing.setAttribute('draggable', true);
+  }
+ 
+  // Move the dragged chip into the zone
+  zone.appendChild(_draggedChip);
+  _draggedChip.classList.remove('dragging');
+  zone.classList.add('filled');
+  zone.querySelector('.drop-hint') && (zone.querySelector('.drop-hint').style.display = 'none');
+ 
+  // Store the value in a hidden input so it can be submitted
+  let hidden = zone.querySelector('input[type=hidden]');
+  if (!hidden) {
+    hidden = document.createElement('input');
+    hidden.type  = 'hidden';
+    hidden.name  = zone.id;
+    zone.appendChild(hidden);
+  }
+  hidden.value = value;
+ 
+  _draggedChip = null;
+}
+ 
+document.addEventListener('dragend', () => {
+  if (_draggedChip) {
+    _draggedChip.classList.remove('dragging');
+    _draggedChip = null;
+  }
 });
+
+
+document.addEventListener('change', function(e) {
+  const checkbox = e.target;
+  if (!checkbox.matches('.mchm-option input[type="checkbox"]')) return;
+
+  const group = checkbox.closest('.mchm');
+  const allCheckboxes = group.querySelectorAll('input[type="checkbox"]');
+  const questionIds = checkbox.dataset.questionIds.trim().split(/\s+/);
+  const maxAllowed = questionIds.length;
+  const checkedCount = [...allCheckboxes].filter(cb => cb.checked).length;
+
+  allCheckboxes.forEach(cb => {
+    if (!cb.checked) {
+      cb.disabled = checkedCount >= maxAllowed;
+    }
+  });
+});
+
+/* SUBMIT AND FETCH SECTION */
+
+function collectAnswers() {
+    const answers = {};
+
+    document.querySelectorAll('.fill-input').forEach(input => {
+        answers[input.id] = input.value.trim();
+    });
+
+    document.querySelectorAll('.mchq').forEach(group => {
+        const selected = group.querySelector('input[type="radio"]:checked');
+        answers[group.id] = selected ? selected.value : null;
+    });
+
+    document.querySelectorAll('.mchm').forEach(group => {
+        const ids = group.dataset.questionIds.trim().split(/\s+/);
+        const checked = [...group.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
+        ids.forEach((qid, i) => {
+            answers[qid] = checked[i] ?? null;
+        });
+    });
+
+    document.querySelectorAll('.match-drop-zone').forEach(zone => {
+        const hidden = zone.querySelector('input[type="hidden"]');
+        answers[zone.id] = hidden ? hidden.value : null;
+    });
+
+    return answers;
+}
+
+async function submitAnswers() {
+    try {
+        const response = await fetch('/api/submit/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(collectAnswers()),
+        });
+
+        const result = await response.json();
+        console.log('Submitted:', result);
+
+        window.onbeforeunload = null; // allow navigation after submit
+        window.location.href = '/'; // redirect to results page
+    } catch (err) {
+        console.error('Submission failed:', err);
+        window.location.href = '/';
+    }
+}
+
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+
+
 </script>
 
 {% endblock %}
