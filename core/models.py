@@ -1,7 +1,7 @@
 import os
 from django.conf import settings
-from django.db import models
-from django.core.validators import MaxValueValidator
+from django.db import models # type: ignore
+from django.core.validators import MaxValueValidator # type: ignore
 from mutagen.mp3 import MP3 # type: ignore
 from mutagen.wave import WAVE # type: ignore
 from mutagen import File # type: ignore
@@ -28,6 +28,8 @@ class ListeningTest(models.Model):
     section_2 = models.TextField()
     section_3 = models.TextField()
     section_4 = models.TextField()
+
+    answers = models.TextField()
 
     audio_file = models.FileField(upload_to='audio/')
 

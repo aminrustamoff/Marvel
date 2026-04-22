@@ -3,9 +3,9 @@ from .models import ListeningTest, ListeningSubmission
 from .utils.text_to_html import convert
 
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from rest_framework.views import APIView # type: ignore
+from rest_framework.response import Response # type: ignore
+from rest_framework import status # type: ignore
 
 from .models import ListeningSubmission
 
@@ -13,6 +13,8 @@ def home(request):
     return render(request, 'core/main.html')
 
 def listening(request, pk):
+
+
     test = get_object_or_404(ListeningTest, pk=pk)
 
     section1_html = convert(test.section_1 or '')
@@ -45,6 +47,7 @@ class SubmitAnswersView(APIView):
 
     def post(self, request):
         data = request.data  # this is already parsed JSON
+        answers = get_object_or_404(ListeningTest)
 
         if not isinstance(data, dict):
             return Response(
@@ -53,10 +56,14 @@ class SubmitAnswersView(APIView):
             )
 
         # Save directly
+        
+
         submission = ListeningSubmission.objects.create(
             answers=data
         )
 
+
+        # write your logic between
         return Response({
             "message": "Answers received successfully",
             "submission_id": submission.id
