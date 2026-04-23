@@ -57,4 +57,5 @@ class ListeningTest(models.Model):
 
 class ListeningSubmission(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
+    correct_count = models.IntegerField()
     answers = models.JSONField()

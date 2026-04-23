@@ -13,7 +13,7 @@ Supported blocks:
 
 Inline formatting (works everywhere):
   *text*    → <strong>
-  /text/    → <em>
+  //text//    → <em>
   __text__  → <u>
 """
 

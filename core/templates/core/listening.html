@@ -5,6 +5,7 @@
 {% block nav_links %}
 <!-- TIMER -->
 <div id="timer">{{ duration }}</div>
+<div id="test_id"><b>{{ test.id }}</b></div>
 <button onclick="submitAnswers()">Submit</button>
 <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
 {% endblock %}
@@ -82,6 +83,14 @@
 #timer {
     position: fixed;
     top: 30px;
+    left: 140px;
+    font-size: 15px;
+    z-index: 10000;
+}
+
+#test_id {
+    position: fixed;
+    top: 10px;
     left: 140px;
     font-size: 15px;
     z-index: 10000;
@@ -502,7 +511,10 @@ document.addEventListener('change', function(e) {
 /* SUBMIT AND FETCH SECTION */
 
 function collectAnswers() {
-    const answers = {};
+    const testId = document.getElementById("test_id").innerText
+    const answers = {
+        'id' : testId,
+    };
 
     document.querySelectorAll('.fill-input').forEach(input => {
         answers[input.id] = input.value.trim();

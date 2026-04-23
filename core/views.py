@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse, get_object_or_404
 from .models import ListeningTest, ListeningSubmission
 from .utils.text_to_html import convert
+from .utils.normilizer import prepare
 
 
 from rest_framework.views import APIView # type: ignore
@@ -47,7 +48,7 @@ class SubmitAnswersView(APIView):
 
     def post(self, request):
         data = request.data  # this is already parsed JSON
-        answers = get_object_or_404(ListeningTest)
+        correct_count = 0
 
         if not isinstance(data, dict):
             return Response(
@@ -55,11 +56,23 @@ class SubmitAnswersView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Save directly
+        # All the logic happens here
+        test_answers = get_object_or_404(ListeningTest, id=int(data['id']))
+        dict_answers = prepare(test_answers.answers)
+
+        print(dict_answers, '\n')
+        print(data, '\n')
+
+        for id_num in dict_answers:
+            for element in dict_answers[id_num]:
+                if element == data[id_num]:
+                    correct_count += 1
         
+        print("The number of correct answers:", correct_count)
+
 
         submission = ListeningSubmission.objects.create(
-            answers=data
+            answers=data, correct_count=correct_count
         )
 
 
@@ -71,4 +84,5 @@ class SubmitAnswersView(APIView):
 
 def view_results(request, submission_id):
     submission = get_object_or_404(ListeningSubmission, id=submission_id)
-    return HttpResponse(f"Your answers: {submission.answers}")
+    return HttpResponse(f"""Your answers: {submission.answers} <br/> 
+                        The number of cerrect answers you've found: {submission.correct_count}""")
