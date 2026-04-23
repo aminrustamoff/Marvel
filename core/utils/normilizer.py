@@ -21,11 +21,15 @@ def prepare(context):
         key_num = i[:space]
         print(key_num)
         key = f"question{key_num}"
-        dict_answers[key] = i[2:]
+        dict_answers[key] = i[space+1:]
 
 
     for id_num in dict_answers:
-        variant = dict_answers[id_num].split("/")
+        variants = dict_answers[id_num].split("/")
+        for variant in variants:
+            clean_variant = variant.strip()
+            variants.remove(variant)
+            variants.append(clean_variant)
         dict_answers[id_num] = variant
         
     return dict_answers

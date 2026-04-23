@@ -4,10 +4,10 @@ from .models import ListeningTest
 @admin.register(ListeningTest)
 class ListeningTestAdmin(admin.ModelAdmin):
     # Fields to display in the list view
-    list_display = ('test_number', 'test_title', 'author', 'get_duration_display', 'is_active', 'created_at')
+    list_display = ('test_title', 'author', 'get_duration_display', 'is_active', 'created_at')
     
     # Clickable fields to enter the edit page
-    list_display_links = ('test_number', 'test_title')
+    list_display_links = ('test_title',)
     
     # Filter sidebar options
     list_filter = ('is_active', 'author', 'created_at')

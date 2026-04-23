@@ -8,7 +8,6 @@ from mutagen import File # type: ignore
 
 class ListeningTest(models.Model):
 
-    test_number = models.IntegerField(validators=[MaxValueValidator(99999)])
     test_title = models.CharField(max_length=250)
 
     # MORE ADVANCED, SEE IT LATER
