@@ -3,6 +3,14 @@
 const resizer_main = document.querySelector('.resizer');
 const leftPanel = document.querySelector('.split-left');
 
+if (resizer_main && leftPanel) {
+    resizer_main.addEventListener('mousedown', (e) => {
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', () => {
+            document.removeEventListener('mousemove', onMouseMove);
+        });
+    });
+}
 resizer_main.addEventListener('mousedown', (e) => {
     resizer_main.classList.add('active');
 

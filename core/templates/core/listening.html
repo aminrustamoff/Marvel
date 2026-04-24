@@ -556,10 +556,10 @@ async function submitAnswers() {
         console.log('Submitted:', result);
 
         window.onbeforeunload = null; // allow navigation after submit
-        window.location.href = '/'; // redirect to results page
+        window.location.href = '/main/'; // redirect to results page
     } catch (err) {
         console.error('Submission failed:', err);
-        window.location.href = '/';
+        window.location.href = '/main/';
     }
 }
 

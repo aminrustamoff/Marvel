@@ -9,7 +9,7 @@ __pycache__/
 *.py[cod]
 
 # Database (keep your local data local)
-db.sqlite3
+# db.sqlite3
 
 # Sensitive environment variables
 .env

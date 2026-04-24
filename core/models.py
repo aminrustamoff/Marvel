@@ -53,8 +53,59 @@ class ListeningTest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
-
-class ListeningSubmission(models.Model):
+class ReadingTest(models.Model):
+    test_title = models.CharField(max_length=250)
+    
+    passage_1 = models.TextField()
+    passage_2 = models.TextField()
+    passage_3 = models.TextField()
+    
+    # Same format as ListeningTest.answers
+    answers = models.TextField()
+    
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    correct_count = models.IntegerField()
-    answers = models.JSONField()
+
+
+
+class ResultsTable(models.Model):
+    session_id = models.CharField(max_length=50, primary_key=True, unique=True)
+    username = models.CharField(max_length=100)
+    session_date = models.DateTimeField(auto_now_add=True)
+
+
+class ListeningResults(models.Model):
+    session = models.OneToOneField(
+        'ResultsTable', 
+        on_delete=models.CASCADE, 
+        primary_key=True
+        )
+    
+    test = models.ForeignKey(
+        'ListeningTest', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True
+        )
+    listening_row_answers = models.JSONField() 
+    listening_correct_count = models.IntegerField()
+    listening_mark = models.DecimalField(max_digits=2, decimal_places=1)
+
+class ReadingResults(models.Model):
+    session = models.OneToOneField('ResultsTable', on_delete=models.CASCADE, primary_key=True)
+    test = models.ForeignKey('ReadingTest', on_delete=models.SET_NULL, null=True)
+    # remove the test_id CharField — use the FK instead
+    reading_row_answers = models.JSONField()
+    reading_correct_count = models.IntegerField()
+    reading_mark = models.DecimalField(max_digits=2, decimal_places=1)
+
+class WritingResults(models.Model):
+    session = models.OneToOneField(
+        'ResultsTable', 
+        on_delete=models.CASCADE, 
+        primary_key=True
+        )
+    test_id = models.CharField(max_length=50)
+    task1_text = models.TextField()
+    task2_text = models.TextField()

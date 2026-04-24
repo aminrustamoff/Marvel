@@ -1,17 +1,47 @@
-from django.shortcuts import render, HttpResponse, get_object_or_404
-from .models import ListeningTest, ListeningSubmission
+from django.shortcuts import render, HttpResponse, get_object_or_404, redirect
+from .models import ListeningTest, ResultsTable, ListeningResults, ReadingResults, WritingResults
+import uuid
 from .utils.text_to_html import convert
 from .utils.normilizer import prepare
+from .utils.marker import get_listening_band
 
 
 from rest_framework.views import APIView # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
 
-from .models import ListeningSubmission
-
 def home(request):
-    return render(request, 'core/main.html')
+    return render(request, 'core/home.html')
+
+def main(request):
+    if request.method == "POST":
+        unique_session = str(uuid.uuid4()).replace('-', '')[:16] 
+        user_name = request.POST.get('username', '').strip() or 'Anonymous'
+
+        new_entry = ResultsTable.objects.create(
+            session_id=unique_session,
+            username=user_name,
+        )
+
+        request.session['current_exam_id'] = new_entry.session_id
+        return redirect('main')
+    session_id = request.session.get('current_exam_id')
+    context = {
+        'listening_done': False,
+        'reading_done': False,
+        'writing_done': False,
+        'username': '',
+    }
+    if session_id:
+        try:
+            session = ResultsTable.objects.get(session_id=session_id)
+            context['username'] = session.username
+            context['listening_done'] = ListeningResults.objects.filter(session=session).exists()
+            context['reading_done'] = ReadingResults.objects.filter(session=session).exists()
+            context['writing_done'] = WritingResults.objects.filter(session=session).exists()
+        except ResultsTable.DoesNotExist:
+            pass
+    return render(request, 'core/main.html', context)
 
 def listening(request, pk):
 
@@ -44,45 +74,59 @@ def reading(request):
 #     return "0:00"
 
 
-class SubmitAnswersView(APIView):
-
+class SubmitListeningAnswersView(APIView):
     def post(self, request):
-        data = request.data  # this is already parsed JSON
-        correct_count = 0
+        data = request.data
+        session_id = request.session.get('current_exam_id')
+
+        if not session_id:
+            return Response({"error": "No active session"}, status=status.HTTP_403_FORBIDDEN)
 
         if not isinstance(data, dict):
-            return Response(
-                {"error": "Invalid format"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Invalid format"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # All the logic happens here
-        test_answers = get_object_or_404(ListeningTest, id=int(data['id']))
+        session_obj = get_object_or_404(ResultsTable, session_id=session_id)
+
+        # Guard: don't let them resubmit
+        if ListeningResults.objects.filter(session=session_obj).exists():
+            return Response({"error": "Already submitted"}, status=status.HTTP_409_CONFLICT)
+
+        test_id = data.get('id')
+        if not test_id:
+            return Response({"error": "Missing test id"}, status=status.HTTP_400_BAD_REQUEST)
+
+        test_answers = get_object_or_404(ListeningTest, id=int(test_id))
         dict_answers = prepare(test_answers.answers)
 
-        print(dict_answers, '\n')
-        print(data, '\n')
-
+        correct_count = 0
         for id_num in dict_answers:
-            for element in dict_answers[id_num]:
-                if element == data[id_num]:
-                    correct_count += 1
-        
-        print("The number of correct answers:", correct_count)
+            user_answer = data.get(id_num)          # .get() instead of [] — no KeyError
+            if user_answer and user_answer in dict_answers[id_num]:
+                correct_count += 1
 
+        mark = get_listening_band(correct_count)
 
-        submission = ListeningSubmission.objects.create(
-            answers=data, correct_count=correct_count
+        ListeningResults.objects.create(
+            session=session_obj,
+            test=test_answers,
+            listening_row_answers=data,
+            listening_correct_count=correct_count,
+            listening_mark=mark,
         )
 
+        return Response({"message": "Submitted successfully"}, status=status.HTTP_200_OK)
+    
+class SubmitReadingAnswersView(APIView):
 
-        # write your logic between
-        return Response({
-            "message": "Answers received successfully",
-            "submission_id": submission.id
-        }, status=status.HTTP_200_OK)
+    def post(self, request):
+        pass
 
-def view_results(request, submission_id):
-    submission = get_object_or_404(ListeningSubmission, id=submission_id)
-    return HttpResponse(f"""Your answers: {submission.answers} <br/> 
-                        The number of cerrect answers you've found: {submission.correct_count}""")
+class SubmitReadinWritingAnswersView(APIView):
+
+    def post(self, request):
+        pass
+    
+
+def view_results(request, session_id):
+    results = get_object_or_404(ListeningResults, session__session_id=session_id)
+    return render(request, 'core/results.html', {'results': results})

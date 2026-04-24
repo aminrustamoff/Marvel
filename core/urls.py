@@ -1,10 +1,11 @@
-from django.urls import path
+from django.urls import path #type: ignore
 from . import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('listening/<int:pk>', views.listening, name='listening'),
-    path('reading', views.reading, name='reading'),
-    path('api/submit/', views.SubmitAnswersView.as_view(), name='submit-answers'),
-    path('results/<int:submission_id>', views.view_results, name='view-results'),
+    path('main/', views.main, name='main'),
+    path('main/listening/<int:pk>', views.listening, name='listening'),
+    path('main/reading', views.reading, name='reading'),
+    path('api/submit/', views.SubmitListeningAnswersView.as_view(), name='submit-answers'),
+    path('results/<str:session_id>/', views.view_results, name='view-results'),
 ]

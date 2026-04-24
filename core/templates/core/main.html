@@ -3,6 +3,10 @@
 {% block title %}Main{% endblock %}
 {% block content %}
 
+{% block nav_links %}
+<div id="username">{{ duration }}</div>
+
+{% endblock %}
 
 <div class="test">
     <div class="accordion">
@@ -16,7 +20,11 @@
                 <video controls class="video-container">
                     <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
                 </video>
-                <a href="listening/1" class="section-link">Go to Listening</a>
+                {% if listening_done %}
+                    <span class="done-badge">✓ Completed</span>
+                {% else %}
+                    <a href="listening/1" class="section-link">Go to Listening</a>
+                {% endif %}
             </div>
         </div>
 
@@ -29,7 +37,11 @@
                 <video controls class="video-container">
                     <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
                 </video>
-                <a href="reading" class="section-link">Go to Reading</a>
+                {% if reading_done %}
+                    <span class="done-badge">✓ Completed</span>
+                {% else %}
+                    <a href="reading/1" class="section-link">Go to Reading</a>
+                {% endif %}
             </div>
         </div>
 
@@ -42,7 +54,11 @@
                 <video controls class="video-container">
                     <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
                 </video>
-                <a href="#" class="section-link">Go to Writing</a>
+                {% if writing_done %}
+                    <span class="done-badge">✓ Completed</span>
+                {% else %}
+                    <a href="#" class="section-link">Go to Writing</a>
+                {% endif %}
             </div>
         </div>
 
