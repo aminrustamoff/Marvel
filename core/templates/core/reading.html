@@ -1,91 +1,575 @@
 {% extends 'core/base.html' %}
-
 {% load static %}
 
 {% block title %}IELTS Reading Test{% endblock %}
 
-{% block content %}
-
-<div class="split-container">
-
-    <!-- LEFT SIDE -->
-    <div class="split-left">
-
-        <div class="part-title">
-            <strong>Part 1</strong>
-            <span>Read the text and answer questions 1–13.</span>
-        </div>
-
-        <h2>The life and work of Marie Curie</h2>
-
-        <p>
-            Marie Curie is probably the most famous woman scientist who has ever lived.
-            Born Maria Sklodowska in Poland in 1867, she is famous for her work on radioactivity,
-            and was twice a winner of the Nobel Prize.
-        </p>
-
-        <p>
-            From childhood, Marie was remarkable for her prodigious memory, and at the age of 16
-            won a gold medal on completing her secondary education.
-        </p>
-
-        <p>
-            In 1891 this promise was fulfilled and Marie went to Paris and began to study at the Sorbonne.
-            She often worked far into the night and lived on little more than bread and butter.
-        </p>
-
-        <p>
-            Their marriage in 1895 marked the start of a partnership that was soon to achieve results
-            of world significance.
-        </p>
-
-    </div>
-
-    <!-- RESIZER -->
-    <div class="resizer" id="resizer"></div>
-
-    <!-- RIGHT SIDE -->
-    <div class="split-right">
-
-        <h3>Questions 1–6</h3>
-        <p>
-            Choose TRUE if the statement agrees with the information given in the text,
-            choose FALSE if the statement contradicts the information,
-            or choose NOT GIVEN if there is no information.
-        </p>
-
-        <!-- Question 1 -->
-        <div class="question">
-            <h4>1. Marie Curie’s husband was a joint winner of both Marie’s Nobel Prizes.</h4>
-            <div class="options">
-                <label><input type="radio" name="q1"> TRUE</label>
-                <label><input type="radio" name="q1"> FALSE</label>
-                <label><input type="radio" name="q1"> NOT GIVEN</label>
-            </div>
-        </div>
-
-        <!-- Question 2 -->
-        <div class="question">
-            <h4>2. Marie became interested in science when she was a child.</h4>
-            <div class="options">
-                <label><input type="radio" name="q2"> TRUE</label>
-                <label><input type="radio" name="q2"> FALSE</label>
-                <label><input type="radio" name="q2"> NOT GIVEN</label>
-            </div>
-        </div>
-
-        <!-- Question 3 -->
-        <div class="question">
-            <h4>3. Marie was able to attend the Sorbonne because of her sister’s financial contribution.</h4>
-            <div class="options">
-                <label><input type="radio" name="q3"> TRUE</label>
-                <label><input type="radio" name="q3"> FALSE</label>
-                <label><input type="radio" name="q3"> NOT GIVEN</label>
-            </div>
-        </div>
-    </div>
-
-</div>
-
+{% block nav_links %}
+<div id="timer">60:00</div>
+<div id="test_id"><b>{{ test_id }}</b></div>
+<button id="submit-btn" onclick="submitAnswers()">Submit</button>
+<img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
 {% endblock %}
 
+{% block content %}
+
+<style>
+
+/* ── Layout ─────────────────────────────────────── */
+
+.reading-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-top: 60px;   /* below fixed navbar */
+    padding-bottom: 52px; /* above fixed tab bar */
+    overflow: hidden;
+}
+
+.passage-panel {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+}
+.passage-panel.active {
+    display: flex;
+}
+
+.split-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* ── Left / Right Panels ─────────────────────────── */
+
+.split-left,
+.split-right {
+    overflow-y: auto;
+    padding: 28px 32px;
+    height: 100%;
+}
+
+.split-left {
+    flex: 1;
+    border-right: 1px solid #e0e0e0;
+    min-width: 220px;
+    line-height: 1.75;
+    color: #1a1a1a;
+}
+
+.split-right {
+    flex: 1;
+    min-width: 220px;
+    background: #fafafa;
+}
+
+/* ── Resizer ─────────────────────────────────────── */
+
+.resizer {
+    width: 6px;
+    cursor: col-resize;
+    background: #d0d0d0;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    position: relative;
+}
+.resizer:hover,
+.resizer.active {
+    background: #0077cc;
+}
+.resizer::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    height: 40px;
+    width: 2px;
+    border-left: 2px dotted #888;
+}
+
+/* ── Passage text styles ─────────────────────────── */
+
+.part-label {
+    display: inline-block;
+    background: #0077cc;
+    color: #fff;
+    font-size: 0.75em;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    padding: 3px 10px;
+    border-radius: 4px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+}
+
+.passage-title {
+    font-size: 1.25em;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #111;
+}
+
+.split-left p {
+    margin-bottom: 14px;
+    line-height: 1.8;
+}
+
+/* ── Questions panel ─────────────────────────────── */
+
+.questions-header {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 6px;
+}
+
+.questions-instruction {
+    font-size: 0.88em;
+    color: #555;
+    margin-bottom: 20px;
+    padding: 10px 14px;
+    background: #f0f7ff;
+    border-left: 4px solid #0077cc;
+    border-radius: 0 6px 6px 0;
+    line-height: 1.55;
+}
+
+.question-block {
+    margin-bottom: 24px;
+}
+
+.question-text {
+    font-size: 0.93em;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.options label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background 0.12s;
+    border: 1px solid transparent;
+}
+.options label:hover {
+    background: #e8f4ff;
+    border-color: #b3d9ff;
+}
+
+/* fill-in-blank inside questions */
+.fill-input {
+    display: inline-block;
+    border: none;
+    border-bottom: 2px solid #777;
+    background: transparent;
+    font-size: 1em;
+    padding: 2px 6px;
+    min-width: 130px;
+    outline: none;
+    color: #111;
+    margin: 0 4px;
+    transition: border-color 0.15s;
+}
+.fill-input:focus { border-bottom-color: #0077cc; }
+
+/* ── Bottom Tab Bar ──────────────────────────────── */
+
+#section-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 12px;
+    border-top: 1px solid #d0d0d0;
+    z-index: 900;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+}
+
+#section-tabs button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 9px 0;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #333;
+    transition: background 0.15s, border-color 0.15s;
+}
+#section-tabs button:hover {
+    background: #e8f4ff;
+    border-color: #90c8f0;
+}
+#section-tabs button.active {
+    background: #0077cc;
+    border-color: #0077cc;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ── Navbar extras ───────────────────────────────── */
+
+#timer {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-right: 18px;
+}
+#test_id {
+    font-size: 13px;
+    color: #666;
+    margin-right: 18px;
+}
+
+#submit-btn {
+    padding: 7px 18px;
+    background: #0077cc;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: background 0.15s;
+}
+#submit-btn:hover { background: #005fa3; }
+
+/* ── Start overlay ───────────────────────────────── */
+
+#start-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    gap: 16px;
+}
+#start-overlay h2 { font-size: 1.6em; color: #111; }
+#start-overlay p  { color: #555; max-width: 420px; text-align: center; line-height: 1.6; }
+
+#start-btn {
+    padding: 14px 36px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: #0077cc;
+    color: #fff;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.15s;
+}
+#start-btn:hover { background: #005fa3; }
+
+/* ── Timer warning colours ───────────────────────── */
+.timer-warning  { color: #c96000 !important; }
+.timer-critical { color: #cc0000 !important; }
+#navbar.warn-bg { background-color: #fff3e0; }
+#navbar.crit-bg { background-color: #ffe0e0; }
+
+</style>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- START OVERLAY                                    -->
+<!-- ════════════════════════════════════════════════ -->
+<div id="start-overlay">
+    <h2>IELTS Reading Test</h2>
+    <p>You have <strong>60 minutes</strong> to read three passages and answer 40 questions.
+       The timer will start as soon as you press the button below.</p>
+    <button id="start-btn" onclick="startTest()">Start Test</button>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- MAIN CONTENT                                     -->
+<!-- ════════════════════════════════════════════════ -->
+<div class="reading-wrapper" id="reading-wrapper" style="display:none;">
+
+    <!-- ── PASSAGE 1 ─────────────────────────────── -->
+    <div class="passage-panel" id="passage1">
+        <div class="split-container">
+
+            <!-- LEFT: passage text -->
+            <div class="split-left" id="left1">
+                <div class="part-label">Part 1</div>
+                <div class="passage-title">{{ passage1_title|default:"Passage 1" }}</div>
+                {{ passage_1_html|safe }}
+            </div>
+
+            <div class="resizer" data-panel="1"></div>
+
+            <!-- RIGHT: questions -->
+            <div class="split-right" id="right1">
+                <div class="questions-header">Questions 1–13</div>
+                <div class="questions-instruction">
+                    {{ questions1_instruction|default:"Read the passage and answer the questions below." }}
+                </div>
+                {{ passage_1_test_html|safe }}
+            </div>
+
+        </div>
+    </div><!-- /passage1 -->
+
+    <!-- ── PASSAGE 2 ─────────────────────────────── -->
+    <div class="passage-panel" id="passage2">
+        <div class="split-container">
+
+            <div class="split-left" id="left2">
+                <div class="part-label">Part 2</div>
+                <div class="passage-title">{{ passage2_title|default:"Passage 2" }}</div>
+                {{ passage_2_html|safe }}
+            </div>
+
+            <div class="resizer" data-panel="2"></div>
+
+            <div class="split-right" id="right2">
+                <div class="questions-header">Questions 14–26</div>
+                <div class="questions-instruction">
+                    {{ questions2_instruction|default:"Read the passage and answer the questions below." }}
+                </div>
+                {{ passage_2_test_html|safe }}
+            </div>
+
+        </div>
+    </div><!-- /passage2 -->
+
+    <!-- ── PASSAGE 3 ─────────────────────────────── -->
+    <div class="passage-panel" id="passage3">
+        <div class="split-container">
+
+            <div class="split-left" id="left3">
+                <div class="part-label">Part 3</div>
+                <div class="passage-title">{{ passage3_title|default:"Passage 3" }}</div>
+                {{ passage_3_html|safe }}
+            </div>
+
+            <div class="resizer" data-panel="3"></div>
+
+            <div class="split-right" id="right3">
+                <div class="questions-header">Questions 27–40</div>
+                <div class="questions-instruction">
+                    {{ questions3_instruction|default:"Read the passage and answer the questions below." }}
+                </div>
+                {{ passage_1_test_html|safe }}
+            </div>
+
+        </div>
+    </div><!-- /passage3 -->
+
+</div><!-- /reading-wrapper -->
+
+<!-- ── BOTTOM TAB BAR ──────────────────────────────── -->
+<div id="section-tabs">
+    <button onclick="showPassage(1)" id="tab1">Passage 1</button>
+    <button onclick="showPassage(2)" id="tab2">Passage 2</button>
+    <button onclick="showPassage(3)" id="tab3">Passage 3</button>
+</div>
+
+<!-- ════════════════════════════════════════════════ -->
+<!-- SCRIPTS                                          -->
+<!-- ════════════════════════════════════════════════ -->
+<script>
+
+/* ─── Constants ──────────────────────────────────── */
+const READING_DURATION_SECS = 60 * 60; // 60 minutes
+
+/* ─── State ──────────────────────────────────────── */
+let totalSeconds  = READING_DURATION_SECS;
+let timerInterval = null;
+
+/* ─── DOM refs ───────────────────────────────────── */
+const timerEl   = document.getElementById('timer');
+const navbarEl  = document.getElementById('navbar');
+const wrapper   = document.getElementById('reading-wrapper');
+const overlay   = document.getElementById('start-overlay');
+
+/* ═══════════════════════════════════════════════════
+   START
+   ═══════════════════════════════════════════════════ */
+function startTest() {
+    overlay.style.display = 'none';
+    wrapper.style.display = 'flex';
+    wrapper.style.flexDirection = 'column';
+
+    showPassage(1);
+    startTimer();
+}
+
+/* ═══════════════════════════════════════════════════
+   TIMER
+   ═══════════════════════════════════════════════════ */
+function startTimer() {
+    updateTimerDisplay(); // paint immediately
+    timerInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerEl.textContent = '00:00';
+            submitAnswers();
+            return;
+        }
+        totalSeconds--;
+        updateTimerDisplay();
+    }, 1000);
+}
+
+function updateTimerDisplay() {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    const pad  = n => String(n).padStart(2, '0');
+
+    // Remove all warning classes first
+    timerEl.classList.remove('timer-warning', 'timer-critical');
+    navbarEl.classList.remove('warn-bg', 'crit-bg');
+
+    if (totalSeconds <= 60) {
+        timerEl.textContent = `${pad(secs)} seconds remaining`;
+        timerEl.classList.add('timer-critical');
+        navbarEl.classList.add('crit-bg');
+    } else if (totalSeconds <= 300) {
+        timerEl.textContent = `${mins}:${pad(secs)} remaining`;
+        timerEl.classList.add('timer-warning');
+        navbarEl.classList.add('warn-bg');
+    } else {
+        timerEl.textContent = `${mins}:${pad(secs)}`;
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   PASSAGE TABS
+   ═══════════════════════════════════════════════════ */
+function showPassage(num) {
+    for (let i = 1; i <= 3; i++) {
+        document.getElementById('passage' + i).classList.toggle('active', i === num);
+        document.getElementById('tab' + i).classList.toggle('active', i === num);
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   RESIZABLE SPLIT PANELS
+   ═══════════════════════════════════════════════════ */
+document.querySelectorAll('.resizer').forEach(resizer => {
+    const panel = resizer.dataset.panel;
+
+    resizer.addEventListener('mousedown', e => {
+        e.preventDefault();
+        resizer.classList.add('active');
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
+
+        const leftEl  = document.getElementById('left'  + panel);
+        const container = leftEl.closest('.split-container');
+
+        function onMove(e) {
+            const rect = container.getBoundingClientRect();
+            const pct  = ((e.clientX - rect.left) / rect.width) * 100;
+            const clamped = Math.min(Math.max(pct, 15), 85);
+            leftEl.style.flex  = 'none';
+            leftEl.style.width = clamped + '%';
+        }
+        function onUp() {
+            resizer.classList.remove('active');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+        }
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+    });
+});
+
+/* ═══════════════════════════════════════════════════
+   COLLECT ANSWERS
+   ═══════════════════════════════════════════════════ */
+function collectAnswers() {
+    const testId  = document.getElementById('test_id').innerText.trim();
+    const answers = { id: testId, type: 'reading' };
+
+    // text fill-ins
+    document.querySelectorAll('.fill-input').forEach(inp => {
+        answers[inp.id] = inp.value.trim();
+    });
+
+    // single-choice radio groups (keyed by name attribute)
+    const radioGroups = {};
+    document.querySelectorAll('input[type="radio"]').forEach(r => {
+        if (!radioGroups[r.name]) radioGroups[r.name] = null;
+        if (r.checked) radioGroups[r.name] = r.value;
+    });
+    Object.assign(answers, radioGroups);
+
+    // checkboxes
+    const checkGroups = {};
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (!checkGroups[cb.name]) checkGroups[cb.name] = [];
+        if (cb.checked) checkGroups[cb.name].push(cb.value);
+    });
+    Object.assign(answers, checkGroups);
+
+    // select dropdowns
+    document.querySelectorAll('select').forEach(sel => {
+        answers[sel.name || sel.id] = sel.value;
+    });
+
+    return answers;
+}
+
+/* ═══════════════════════════════════════════════════
+   SUBMIT
+   ═══════════════════════════════════════════════════ */
+async function submitAnswers() {
+    clearInterval(timerInterval);
+
+    try {
+        const response = await fetch('/api/submit/reading/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),
+            },
+            body: JSON.stringify(collectAnswers()),
+        });
+
+        const result = await response.json();
+        console.log('Submitted:', result);
+
+        window.onbeforeunload = null;
+        window.location.href = '/main/';
+    } catch (err) {
+        console.error('Submission failed:', err);
+        window.onbeforeunload = null;
+        window.location.href = '/main/';
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════════════════ */
+function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+/* Guard: prevent accidental page close during test */
+window.onbeforeunload = () => 'Reading test is in progress!';
+
+</script>
+
+{% endblock %}

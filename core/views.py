@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, get_object_or_404, redirect
-from .models import ListeningTest, ResultsTable, ListeningResults, ReadingResults, WritingResults
+from .models import ListeningTest, ReadingTest, ResultsTable, ListeningResults, ReadingResults, WritingResults
 import uuid
 from .utils.text_to_html import convert
 from .utils.normilizer import prepare
@@ -64,14 +64,25 @@ def listening(request, pk):
         'duration': duration,
     })
 
-def reading(request):
-    return render(request, 'core/reading.html')
+def reading(request, pk):
 
-# def get_duration_display(self):
-#     if self.duration:
-#         mins, secs = divmod(self.duration, 60)
-#         return f"{mins}:{secs:02d}"
-#     return "0:00"
+    reading_test = get_object_or_404(ReadingTest, pk=pk)
+
+    passage_1_html = convert(reading_test.passage_1 or '')
+    passage_2_html = convert(reading_test.passage_2 or '')
+    passage_3_html = convert(reading_test.passage_3 or '')
+    passage_1_test_html = convert(reading_test.passage_1_test or '')
+    passage_2_test_html = convert(reading_test.passage_2_test or '')
+    passage_3_test_html = convert(reading_test.passage_3_test or '')
+
+    return render(request, 'core/reading.html', {
+        'passage_1_html' : passage_1_html,
+        'passage_2_html' : passage_2_html,
+        'passage_3_html' : passage_3_html,
+        'passage_1_test_html' : passage_1_test_html,
+        'passage_2_test_html' : passage_2_test_html,
+        'passage_3_test_html' : passage_3_test_html,
+    })
 
 
 class SubmitListeningAnswersView(APIView):

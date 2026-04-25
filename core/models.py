@@ -55,11 +55,15 @@ class ListeningTest(models.Model):
 
 class ReadingTest(models.Model):
     test_title = models.CharField(max_length=250)
-    
+
     passage_1 = models.TextField()
     passage_2 = models.TextField()
     passage_3 = models.TextField()
     
+    passage_1_test = models.TextField()
+    passage_2_test = models.TextField()
+    passage_3_test = models.TextField()
+
     # Same format as ListeningTest.answers
     answers = models.TextField()
     

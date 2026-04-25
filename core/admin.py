@@ -1,5 +1,5 @@
 from django.contrib import admin # type: ignore
-from .models import ListeningTest
+from .models import ListeningTest, ReadingTest
 
 @admin.register(ListeningTest)
 class ListeningTestAdmin(admin.ModelAdmin):
@@ -29,3 +29,36 @@ class ListeningTestAdmin(admin.ModelAdmin):
 
 # You can also register MyModel here if needed
 # admin.site.register(MyModel)
+
+@admin.register(ReadingTest)
+class ReadingTestAdmin(admin.ModelAdmin):
+
+    list_display       = ('test_title', 'author', 'is_active', 'created_at')
+    list_display_links = ('test_title',)
+    list_filter        = ('is_active', 'author', 'created_at')
+    list_editable      = ('is_active',)
+    search_fields      = ('test_title',)
+    readonly_fields    = ('created_at',)
+    ordering           = ('-created_at',)
+
+    fieldsets = (
+        ('General', {
+            'fields': ('test_title', 'author', 'is_active', 'created_at'),
+        }),
+        ('Answer Key', {
+            'fields': ('answers',),
+            'classes': ('collapse',),
+        }),
+        ('Passage 1', {
+            'fields': ('passage_1', 'passage_1_test'),
+            'classes': ('collapse',),
+        }),
+        ('Passage 2', {
+            'fields': ('passage_2', 'passage_2_test'),
+            'classes': ('collapse',),
+        }),
+        ('Passage 3', {
+            'fields': ('passage_3', 'passage_3_test'),
+            'classes': ('collapse',),
+        }),
+    )
