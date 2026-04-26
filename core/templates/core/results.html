@@ -1,0 +1,19 @@
+
+{% load static %}
+<div class="results-container">
+    <h1>Test Results</h1>
+    
+    <div class="results-section">
+        <h2>Listening Section</h2>
+        <p><strong>Band Score:</strong> {{ listening_results.listening_mark }}</p>
+        <p><strong>Correct Answers:</strong> {{ listening_results.listening_correct_count }} out of 40</p>
+    </div>
+
+    <div class="results-section">
+        <h2>Reading Section</h2>
+        <p><strong>Band Score:</strong> {{ reading_results.reading_mark }}</p>
+        <p><strong>Correct Answers:</strong> {{ reading_results.reading_correct_count }} out of 40</p>
+    </div>
+
+    <!-- Add more sections for Writing and Speaking if needed -->
+</div>

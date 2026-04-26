@@ -281,6 +281,56 @@ section-instructions-title {
 .guide-body { color: #333; }
 
 
+/* ───── Drop (dropdown matching) ───── */
+.drop-widget {
+  margin: .8rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .5rem;
+}
+.drop-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.drop-qnum {
+  font-weight: 700;
+  min-width: 1.6em;
+  color: #444;
+}
+.drop-text {
+  flex: 1;
+  min-width: 140px;
+}
+.drop-select {
+  appearance: auto;
+  border: 2px solid #9c9c9c;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 1em;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+}
+.drop-select:focus { border-color: #0077cc; }
+
+/* ───── Image insert ───── */
+.img-block {
+  display: block;
+  margin: .8rem 0;
+  line-height: 0;          /* removes phantom gap below inline img */
+}
+.img-insert {
+  max-width: 50%;         /* never overflow the container */
+  height: auto;            /* preserve aspect ratio */
+  display: block;
+  border-radius: 4px;
+}
+
+
 
 </style>
 
@@ -538,12 +588,16 @@ function collectAnswers() {
         answers[zone.id] = hidden ? hidden.value : null;
     });
 
+    document.querySelectorAll('.drop-select').forEach(select => {
+        answers[select.id] = select.value;
+    });
+
     return answers;
 }
 
 async function submitAnswers() {
     try {
-        const response = await fetch('/api/submit/', {
+        const response = await fetch('/api/submit/listening/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

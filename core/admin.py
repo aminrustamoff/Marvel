@@ -1,25 +1,31 @@
-from django.contrib import admin # type: ignore
-from .models import ListeningTest, ReadingTest
+from django.contrib import admin
+from django.utils.html import format_html
+from .models import ListeningTest, ListeningTestImage, ReadingTest, ReadingTestImage
+
+
+class ListeningTestImageInline(admin.TabularInline):
+    model = ListeningTestImage
+    extra = 1
+    fields = ('section', 'label', 'image')
+
+
+class ReadingTestImageInline(admin.TabularInline):
+    model = ReadingTestImage
+    extra = 1
+    fields = ('passage', 'label', 'image')
+
 
 @admin.register(ListeningTest)
 class ListeningTestAdmin(admin.ModelAdmin):
-    # Fields to display in the list view
     list_display = ('test_title', 'author', 'get_duration_display', 'is_active', 'created_at')
-    
-    # Clickable fields to enter the edit page
     list_display_links = ('test_title',)
-    
-    # Filter sidebar options
     list_filter = ('is_active', 'author', 'created_at')
-    
-    # Search bar functionality
-    search_fields = ('test_title', 'test_number')
-    
-    # IMPORTANT: Since duration and created_at are not editable, 
-    # they must be declared here to show up in the edit form.
+    list_editable = ('is_active',)
+    search_fields = ('test_title',)
     readonly_fields = ('duration', 'created_at')
+    ordering = ('-created_at',)
+    inlines = [ListeningTestImageInline]  # ← images managed here
 
-    # Optional: Display duration in MM:SS format in the list view
     def get_duration_display(self, obj):
         if obj.duration:
             mins, secs = divmod(obj.duration, 60)
@@ -27,19 +33,17 @@ class ListeningTestAdmin(admin.ModelAdmin):
         return "0:00"
     get_duration_display.short_description = "Duration"
 
-# You can also register MyModel here if needed
-# admin.site.register(MyModel)
 
 @admin.register(ReadingTest)
 class ReadingTestAdmin(admin.ModelAdmin):
-
-    list_display       = ('test_title', 'author', 'is_active', 'created_at')
+    list_display = ('test_title', 'author', 'is_active', 'created_at')
     list_display_links = ('test_title',)
-    list_filter        = ('is_active', 'author', 'created_at')
-    list_editable      = ('is_active',)
-    search_fields      = ('test_title',)
-    readonly_fields    = ('created_at',)
-    ordering           = ('-created_at',)
+    list_filter = ('is_active', 'author', 'created_at')
+    list_editable = ('is_active',)
+    search_fields = ('test_title',)
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+    inlines = [ReadingTestImageInline]
 
     fieldsets = (
         ('General', {

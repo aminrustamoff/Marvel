@@ -3,7 +3,7 @@ from .models import ListeningTest, ReadingTest, ResultsTable, ListeningResults, 
 import uuid
 from .utils.text_to_html import convert
 from .utils.normilizer import prepare
-from .utils.marker import get_listening_band
+from .utils.marker import get_listening_band, get_reading_band
 
 
 from rest_framework.views import APIView # type: ignore
@@ -47,11 +47,14 @@ def listening(request, pk):
 
 
     test = get_object_or_404(ListeningTest, pk=pk)
+    
+    images = {img.label: img.image.url for img in test.images.all()}
 
-    section1_html = convert(test.section_1 or '')
-    section2_html = convert(test.section_2 or '')
-    section3_html = convert(test.section_3 or '')
-    section4_html = convert(test.section_4 or '')
+    section1_html = convert(test.section_1 or '', images)
+    section2_html = convert(test.section_2 or '', images)
+    section3_html = convert(test.section_3 or '', images)
+    section4_html = convert(test.section_4 or '', images)
+
 
     duration = f'{test.duration // 60}:{test.duration % 60:02d}' if test.duration else '0:00'
 
@@ -67,15 +70,19 @@ def listening(request, pk):
 def reading(request, pk):
 
     reading_test = get_object_or_404(ReadingTest, pk=pk)
+    
+    images = {img.label: img.image.url for img in reading_test.images.all()}
 
-    passage_1_html = convert(reading_test.passage_1 or '')
-    passage_2_html = convert(reading_test.passage_2 or '')
-    passage_3_html = convert(reading_test.passage_3 or '')
-    passage_1_test_html = convert(reading_test.passage_1_test or '')
-    passage_2_test_html = convert(reading_test.passage_2_test or '')
-    passage_3_test_html = convert(reading_test.passage_3_test or '')
+    passage_1_html = convert(reading_test.passage_1 or '', images)
+    passage_2_html = convert(reading_test.passage_2 or '', images)
+    passage_3_html = convert(reading_test.passage_3 or '', images)
+    passage_1_test_html = convert(reading_test.passage_1_test or '', images)
+    passage_2_test_html = convert(reading_test.passage_2_test or '', images)
+    passage_3_test_html = convert(reading_test.passage_3_test or '', images)
+
 
     return render(request, 'core/reading.html', {
+        'test': reading_test,
         'passage_1_html' : passage_1_html,
         'passage_2_html' : passage_2_html,
         'passage_3_html' : passage_3_html,
@@ -128,16 +135,54 @@ class SubmitListeningAnswersView(APIView):
         return Response({"message": "Submitted successfully"}, status=status.HTTP_200_OK)
     
 class SubmitReadingAnswersView(APIView):
-
     def post(self, request):
-        pass
+        data = request.data
+        session_id = request.session.get('current_exam_id')
 
-class SubmitReadinWritingAnswersView(APIView):
+        if not session_id:
+            return Response({"error": "No active session"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not isinstance(data, dict):
+            return Response({"error": "Invalid format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        session_obj = get_object_or_404(ResultsTable, session_id=session_id)
+
+        # Guard: don't let them resubmit
+        if ReadingResults.objects.filter(session=session_obj).exists():
+            return Response({"error": "Already submitted"}, status=status.HTTP_409_CONFLICT)
+
+        test_id = data.get('id')
+        if not test_id:
+            return Response({"error": "Missing test id"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        reading_test = get_object_or_404(ReadingTest, id=int(test_id))
+        dict_answers = prepare(reading_test.answers)
+        correct_count = 0
+
+        for id_num in dict_answers:
+            user_answer = data.get(id_num)          # .get() instead of [] — no KeyError
+            if user_answer and user_answer in dict_answers[id_num]:
+                correct_count += 1
+
+        mark = get_reading_band(correct_count)
+
+        ReadingResults.objects.create(
+            session=session_obj,
+            test=reading_test,
+            reading_row_answers=data,
+            reading_correct_count=correct_count,
+            reading_mark=mark,
+        )
+
+        return Response({"message": "Submitted successfully"}, status=status.HTTP_200_OK)
+
+class SubmitWritingAnswersView(APIView):
 
     def post(self, request):
         pass
     
 
 def view_results(request, session_id):
-    results = get_object_or_404(ListeningResults, session__session_id=session_id)
-    return render(request, 'core/results.html', {'results': results})
+    listening_results = get_object_or_404(ListeningResults, session__session_id=session_id)
+    reading_results = get_object_or_404(ReadingResults, session__session_id=session_id)
+    return render(request, 'core/results.html', {'listening_results': listening_results, 'reading_results': reading_results})

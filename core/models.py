@@ -5,7 +5,14 @@ from django.core.validators import MaxValueValidator # type: ignore
 from mutagen.mp3 import MP3 # type: ignore
 from mutagen.wave import WAVE # type: ignore
 from mutagen import File # type: ignore
+from django.core.exceptions import ValidationError
 
+def validate_image_extension(value):
+    ext = value.name.split('.')[-1].lower()
+    allowed = ['jpg', 'jpeg', 'png']
+    if ext not in allowed:
+        raise ValidationError(f'Unsupported file type. Allowed types: {", ".join(allowed)}')
+    
 class ListeningTest(models.Model):
 
     test_title = models.CharField(max_length=250)
@@ -53,6 +60,12 @@ class ListeningTest(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+class ListeningTestImage(models.Model):
+    test = models.ForeignKey(ListeningTest, on_delete=models.CASCADE, related_name='images')
+    section = models.IntegerField(choices=[(1,'Section 1'),(2,'Section 2'),(3,'Section 3'),(4,'Section 4')])
+    image = models.ImageField(upload_to='listening/images/', validators=[validate_image_extension])
+    label = models.CharField(max_length=50)  # e.g. "map", "graph", "diagram"
+
 class ReadingTest(models.Model):
     test_title = models.CharField(max_length=250)
 
@@ -62,7 +75,7 @@ class ReadingTest(models.Model):
     
     passage_1_test = models.TextField()
     passage_2_test = models.TextField()
-    passage_3_test = models.TextField()
+    passage_3_test = models.TextField() 
 
     # Same format as ListeningTest.answers
     answers = models.TextField()
@@ -71,7 +84,26 @@ class ReadingTest(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+class ReadingTestImage(models.Model):
+    class PassageNumber(models.IntegerChoices):
+        PASSAGE_1 = 1, "Passage 1"
+        PASSAGE_2 = 2, "Passage 2"
+        PASSAGE_3 = 3, "Passage 3"
 
+    test = models.ForeignKey(
+        ReadingTest,
+        on_delete=models.CASCADE,
+        related_name='images'
+    )
+    passage = models.IntegerField(choices=PassageNumber.choices)
+    image = models.ImageField(
+        upload_to='reading/images/',
+        validators=[validate_image_extension]
+    )
+    label = models.CharField(max_length=50)  # e.g. "map", "graph", "chart"
+
+    def __str__(self):
+        return f"{self.test.test_title} — Passage {self.passage} — {self.label}"
 
 class ResultsTable(models.Model):
     session_id = models.CharField(max_length=50, primary_key=True, unique=True)

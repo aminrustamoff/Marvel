@@ -8,6 +8,8 @@ Supported blocks:
   [mchq N {A ...}{B ...}...]        → single-choice MCQ
   [mchm N M {A ...}{B ...}...]      → multi-answer MCQ (N, M = question IDs)
   [match ({N ...}{M ...}) ({A ...}{B ...})] → drag-and-drop matching
+  [drop ({1 text}{2 text}...) ({I}{II}{III}...)] → dropdown per question row
+  [img filename.ext]                → inline image (matched by filename)
   [box ...]                         → bordered text container
   [guide ...]                       → guide/instruction container
 
@@ -196,6 +198,46 @@ def render_guide(content: str) -> str:
     return f'<div class="guide-box">{title_html}{body_html}</div>'
 
 
+def render_drop(left_items: list[tuple[str, str]], options: list[str]) -> str:
+    """
+    Dropdown matching: each question row gets its own <select>.
+
+    left_items  → list of (question_id, question_text)  e.g. [('1', 'Quest'), ('2', 'Quest 2')]
+    options     → list of option label strings           e.g. ['I', 'II', 'III', 'IV', 'V']
+
+    Renders every row as:
+        <question_text>   [dropdown ▾]
+    The <select> id/name is "question{id}" so collectAnswers() picks it up automatically.
+    """
+    rows_html = []
+    for qid, text in left_items:
+        full_qid = f"question{qid}"
+        opts_html = '<option value="">—</option>'
+        for opt in options:
+            opts_html += f'<option value="{opt}">{opt}</option>'
+        rows_html.append(
+            f'<div class="drop-row">'
+            f'<span class="drop-qnum">{qid}.</span>'
+            f'<span class="drop-text">{apply_inline_formatting(text)}</span>'
+            f'<select id="{full_qid}" name="{full_qid}" '
+            f'class="drop-select" data-question-id="{qid}">'
+            f'{opts_html}'
+            f'</select>'
+            f'</div>'
+        )
+    return f'<div class="drop-widget">{"".join(rows_html)}</div>'
+
+def render_img(label: str, images: dict) -> str:
+    url = images.get(label)
+    if url:
+        return (
+            f'<div class="img-block">'
+            f'<img src="{url}" class="img-insert" alt="{label}">'
+            f'</div>'
+        )
+    return ''  # silently skip if label not found
+
+
 # ---------------------------------------------------------------------------
 # Master block parser
 # ---------------------------------------------------------------------------
@@ -239,54 +281,54 @@ def extract_blocks(text: str) -> list[tuple[str, str]]:
     return tokens
 
 
-def parse_block(raw: str) -> str:
-    """Convert a raw block string (contents between [ ]) to HTML."""
+def parse_block(raw: str, images: dict = {}) -> str:
     raw = raw.strip()
 
-    # ---- [fill N] ----
     m = re.match(r'^fill\s+(\d+)\s*$', raw, re.DOTALL | re.IGNORECASE)
     if m:
         return render_fill(m.group(1))
 
-    # ---- [mchq N {A ...}...] ----
     m = re.match(r'^mchq\s+(\d+)\s+(.+)$', raw, re.DOTALL | re.IGNORECASE)
     if m:
-        qid     = m.group(1)
-        opt_raw = m.group(2)
-        options = parse_options(opt_raw)
-        return render_mchq(qid, options)
+        return render_mchq(m.group(1), parse_options(m.group(2)))
 
-    # ---- [mchm N M ... {A ...}...] ----
     m = re.match(r'^mchm\s+((?:\d+\s+)+)(.+)$', raw, re.DOTALL | re.IGNORECASE)
     if m:
-        ids_raw = m.group(1).strip().split()
-        opt_raw = m.group(2)
-        options = parse_options(opt_raw)
-        return render_mchm(ids_raw, options)
+        return render_mchm(m.group(1).strip().split(), parse_options(m.group(2)))
 
-    # ---- [match ({N ...}) ({A ...})] ----
-    m = re.match(
-        r'^match\s*\(([^)]+)\)\s*\(([^)]+)\)\s*$',
-        raw, re.DOTALL | re.IGNORECASE
-    )
+    m = re.match(r'^match\s*\(([^)]+)\)\s*\(([^)]+)\)\s*$', raw, re.DOTALL | re.IGNORECASE)
     if m:
-        left_raw  = m.group(1)
-        right_raw = m.group(2)
-        left_items  = parse_options(left_raw)
-        right_items = parse_options(right_raw)
-        return render_match(left_items, right_items)
+        return render_match(parse_options(m.group(1)), parse_options(m.group(2)))
 
-    # ---- [box ...] ----
     m = re.match(r'^box\s+(.+)$', raw, re.DOTALL | re.IGNORECASE)
     if m:
         return render_box(m.group(1))
 
-    # ---- [guide ...] ----
     m = re.match(r'^guide\s+(.+)$', raw, re.DOTALL | re.IGNORECASE)
     if m:
         return render_guide(m.group(1))
+    
+    # ---- [drop ({1 text}{2 text}...) ({I}{II}...)] ----
+    # Each {N text} in the first group becomes a question row with a dropdown.
+    # Each {opt} in the second group becomes a <select> option.
+    m = re.match(
+        r'^drop\s*\(([^)]+)\)\s*\(([^)]+)\)\s*$',
+        raw, re.DOTALL | re.IGNORECASE
+    )
+    if m:
+        left_raw  = m.group(1)   # {1 Quest }{2 Quest 2}...
+        opts_raw  = m.group(2)   # {I}{II}{III}...
+        left_items = parse_options(left_raw)          # [(id, text), ...]
+        opts_parsed = parse_options(opts_raw)         # [(label, extra_text), ...]
+        # Combine label + any extra text into a single display string
+        options = [f"{k} {t}".strip() for k, t in opts_parsed]
+        return render_drop(left_items, options)
 
-    # Unknown block — return as-is wrapped in a comment
+    # ---- [img label] ----
+    m = re.match(r'^img\s+(\w+)\s*$', raw, re.IGNORECASE)
+    if m:
+        return render_img(m.group(1), images)
+
     return f'<!-- UNKNOWN BLOCK: [{raw}] -->'
 
 
@@ -311,13 +353,10 @@ def render_plain_text(text: str) -> str:
 # Top-level converter
 # ---------------------------------------------------------------------------
 
-def convert(source: str) -> str:
+def convert(source: str, images: dict = {}) -> str:
     tokens = extract_blocks(source)
-    
-    # Group tokens into lines: if a fill block appears inside a text paragraph
-    # (no blank line before/after), keep it inline inside the <p>
     result = []
-    buffer = []   # collects inline pieces for the current <p>
+    buffer = []
 
     def flush_buffer():
         if buffer:
@@ -329,13 +368,11 @@ def convert(source: str) -> str:
             raw = content.strip()
             is_inline = bool(re.match(r'^fill\s+\d+', raw, re.IGNORECASE))
             if is_inline:
-                # inline: append directly into current paragraph buffer
-                buffer.append(parse_block(content))
+                buffer.append(parse_block(content, images))
             else:
                 flush_buffer()
-                result.append(parse_block(content))
+                result.append(parse_block(content, images))
         else:
-            # split on double newlines to detect paragraph boundaries
             paragraphs = re.split(r'\n{2,}', content)
             for i, para in enumerate(paragraphs):
                 para = para.strip()
@@ -350,7 +387,6 @@ def convert(source: str) -> str:
 
     flush_buffer()
     return '\n'.join(result)
-
 
 # ---------------------------------------------------------------------------
 # Full HTML page wrapper  (includes CSS + JS)
@@ -502,6 +538,54 @@ body {
   color: #0055aa;
 }
 .guide-body { color: #333; }
+
+/* ───── Drop (dropdown matching) ───── */
+.drop-widget {
+  margin: .8rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+.drop-row {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+}
+.drop-qnum {
+  font-weight: 700;
+  min-width: 1.6em;
+  color: #444;
+}
+.drop-text {
+  flex: 1;
+  min-width: 140px;
+}
+.drop-select {
+  appearance: auto;
+  border: 2px solid #9c9c9c;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 1em;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  transition: border-color .15s;
+}
+.drop-select:focus { border-color: #0077cc; }
+
+/* ───── Image insert ───── */
+.img-block {
+  display: block;
+  margin: .8rem 0;
+  line-height: 0;          /* removes phantom gap below inline img */
+}
+.img-insert {
+  max-width: 100%;         /* never overflow the container */
+  height: auto;            /* preserve aspect ratio */
+  display: block;
+  border-radius: 4px;
+}
 """
 
 JS = """
