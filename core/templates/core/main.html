@@ -8,58 +8,127 @@
 
 {% endblock %}
 
+<style>
+    .test {
+        display: flex;
+        overflow: scroll;
+    }
+
+    .main-section-title {
+        font-size: 30px;
+        margin: 20px 40px;
+        font-weight: 100;
+    }
+
+    .accordion {
+        width: 60%;
+        margin: 0 auto;
+    }
+
+    .arrow {
+        width: 50px;
+        height: 50px;
+    }
+
+    .accordion-item {
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        margin: 10px 0;
+        padding: 20px;
+        overflow: hidden;
+        background-color: #f0f0f0;
+    }
+
+    .accordion-header {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        height: 15vh;
+        background-color: #f0f0f0;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: 500;
+        text-align: left;
+        transition: background-color 0.2s;
+    }
+
+    .accordion-header:hover {
+        background-color: #e0e0e0;
+    }
+
+    .accordion-arrow {
+        font-size: 14px;
+        transition: transform 0.3s ease;
+    }
+
+    .accordion-arrow.open {
+        transform: rotate(180deg);
+    }
+
+    .accordion-body {
+        display: none;
+        padding: 16px;
+        background-color: #fff;
+        border-top: 1px solid #ccc;
+        text-align: center;
+    }
+
+    .accordion-body.open {
+        display: block;
+    }
+
+    .video-container {
+        width: 100%;
+        max-width: 800px;
+        border-radius: 8px;
+        margin: 0 auto 12px;
+        display: block;
+    }
+</style>
+
 <div class="test">
     <div class="accordion">
 
         <div class="accordion-item" style="margin-top:100px;">
-            <button class="accordion-header" onclick="toggleAccordion(this)">
-                <span>Listening</span>
-                <span class="accordion-arrow"><img class="arrow"src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
-            </button>
-            <div class="accordion-body">
-                <video controls class="video-container">
-                    <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
-                </video>
-                {% if listening_done %}
-                    <span class="done-badge">✓ Completed</span>
-                {% else %}
-                    <a href="listening/1" class="section-link">Go to Listening</a>
-                {% endif %}
-            </div>
+            <span calss="main-section-title">Listening</span>
+            <span class="accordion-arrow"><img class="arrow"src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
+            <video controls class="video-container">
+                <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
+            </video>
+            {% if listening_done %}
+                <span class="done-badge">✓ Completed</span>
+            {% else %}
+                <a href="listening/1" class="section-link">Go to Listening</a>
+            {% endif %}
         </div>
 
         <div class="accordion-item">
-            <button class="accordion-header" onclick="toggleAccordion(this)">
-                <span>Reading</span>
-                <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
-            </button>
-            <div class="accordion-body">
-                <video controls class="video-container">
-                    <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
-                </video>
-                {% if reading_done %}
-                    <span class="done-badge">✓ Completed</span>
-                {% else %}
-                    <a href="reading/1" class="section-link">Go to Reading</a>
-                {% endif %}
-            </div>
+            <spa calss="main-section-title">Reading</span>
+            <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
+            <video controls class="video-container">
+                <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
+            </video>
+            {% if reading_done %}
+                <span class="done-badge">✓ Completed</span>
+            {% else %}
+                <a href="reading/1" class="section-link">Go to Reading</a>
+            {% endif %}
         </div>
 
         <div class="accordion-item">
-            <button class="accordion-header" onclick="toggleAccordion(this)">
-                <span>Writing</span>
-                <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
-            </button>
-            <div class="accordion-body">
-                <video controls class="video-container">
-                    <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
-                </video>
-                {% if writing_done %}
-                    <span class="done-badge">✓ Completed</span>
-                {% else %}
-                    <a href="#" class="section-link">Go to Writing</a>
-                {% endif %}
-            </div>
+            <span calss="main-section-title">Writing</span>
+            <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
+            <video controls class="video-container">
+                <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
+            </video>
+            {% if writing_done %}
+                <span class="done-badge">✓ Completed</span>
+            {% else %}
+                <a href="#" class="section-link">Go to Writing</a>
+            {% endif %}
         </div>
 
     </div>

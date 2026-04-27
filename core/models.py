@@ -5,7 +5,7 @@ from django.core.validators import MaxValueValidator # type: ignore
 from mutagen.mp3 import MP3 # type: ignore
 from mutagen.wave import WAVE # type: ignore
 from mutagen import File # type: ignore
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError # type: ignore
 
 def validate_image_extension(value):
     ext = value.name.split('.')[-1].lower()

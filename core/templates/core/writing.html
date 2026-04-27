@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}IELTS Reading Test{% endblock %}
+
+{% block nav_links %}
+<div id="timer">60:00</div>
+<!-- <div id="test_id"><b>{{ test.id }}</b></div> -->
+<!-- <button id="submit-btn" onclick="submitAnswers()">Submit</button> -->
+<img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
+{% endblock %}
+
+{% block content %}
+
+<style>
+.writing-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding-top: 60px;   /* below fixed navbar */
+    padding-bottom: 52px; /* above fixed tab bar */
+    overflow: hidden;
+}
+
+
+
+</style>
