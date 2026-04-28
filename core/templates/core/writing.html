@@ -13,6 +13,15 @@
 {% block content %}
 
 <style>
+
+/* ── Timer warning colours ───────────────────────── */
+.timer-warning  { color: #c96000 !important; }
+.timer-critical { color: #cc0000 !important; }
+#navbar.warn-bg { background-color: #fff3e0; }
+#navbar.crit-bg { background-color: #ffe0e0; }
+
+/* layout */
+
 .writing-wrapper {
     display: flex;
     flex-direction: column;
@@ -22,6 +31,374 @@
     overflow: hidden;
 }
 
+.task-panel {
+    display: none;
+    flex: 1;
+    overflow: hidden;
+}
+
+.task-panel.active {
+    display: flex;
+    flex-direction: column;
+}
+
+.split-container {
+    display: flex;
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Title bar */
+
+.instruction {
+    border: 2px solid #e0e0de;
+    background: #f0f0e9;
+    border-radius: 6px;
+    padding: 10px 10px 10px 10px;
+    margin: 16px 16px 5px 16px;
+    flex-shrink: 0;           /* prevents it from being squished */
+}
+
+.instruction-title {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+/* Left / Right panels */
+
+.split-left,
+.split-right {
+    overflow-y: auto;
+    padding: 28px 32px;
+    height: 100%;
+}
+
+.split-left {
+    flex: 1;
+    border-right: 1px solid #e0e0e0;
+    min-width: 220px;
+    line-height: 1.75;
+    color: #1a1a1a;
+}
+
+.split-right {
+    flex: 1;
+    min-width: 220px;
+    background: #fafafa;
+}
+
+/* ── Resizer ─────────────────────────────────────── */
+
+.resizer {
+    width: 22px;              /* ← match the handle icon width */
+    cursor: col-resize;
+    flex-shrink: 0;
+    position: relative;
+    background: transparent;  /* ← hide the wide element itself */
+    transition: background 0.15s;
+}
+
+/* Thin visual line — drawn with ::before, not the element itself */
+.resizer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;               /* visual line stays thin */
+    height: 100%;
+    background: #d0d0d0;
+    transition: background 0.15s;
+}
+
+.resizer:hover::before,
+.resizer.active::before {
+    background: #0077cc;
+}
+
+/* Handle icon stays the same */
+.resizer::after {
+    content: '↔';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border: 1.5px solid #b0b0b0;
+    border-radius: 4px;
+    width: 22px;
+    height: 22px;
+    line-height: 22px;
+    text-align: center;
+    font-size: 12px;
+    color: #cfcfcf;
+    box-shadow: 0 1px 3px rgba(197, 197, 197, 0.726);
+    pointer-events: none;
+}
+
+.resizer:hover::after,
+.resizer.active::after {
+    border-color: #0077cc;
+    color: #0077cc;
+}
 
 
 </style>
+
+<div class="writing-wrapper" id="writing-wrapper" style="display: none;">
+
+    <!-- TASK 1 -->
+    <div class="writing-panel" id="task1">
+        <div class="instruction">
+            <div class="instruction-title">
+                Task 1
+            </div>
+            <p>
+                You should spend about 20 minutes for this task.
+            </p>
+        </div>
+        <div class="split-container">
+            <!-- LEFT -->
+            <div class="split-left" id="left1">
+                {{ task_1_html|safe }}
+            </div>
+
+            <div class="resizer" data-panel="1"></div>
+            
+            <!-- RIGHT -->
+            <div class="split-right" id="right1">
+                <textarea class="textfield" id="answer1" placeholder="Write your answer here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- TASK 2 -->
+    <div class="writing-panel" id="task2">
+        <div class="instruction">
+            <div class="instruction-title">
+                Task 2
+            </div>
+            <p>
+                You should spend about 40 minutes for this task.
+            </p>
+        </div>
+        <div class="split-container">
+            <!-- LEFT -->
+            <div class="split-left" id="left2">
+                {{ task_2_html|safe }}
+            </div>
+
+            <div class="resizer" data-panel="2"></div>
+
+            <!-- RIGHT -->
+            <div class="split-right" id="right2">
+                <textarea class="textfield" id="answer2" placeholder="Write your answer here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── BOTTOM TAB BAR ──────────────────────────────── -->
+<div id="section-tabs">
+    <button onclick="showTask(1)" id="tab1">Task 1</button>
+    <button onclick="showTask(2)" id="tab2">Task 2</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   WRITING PAGE SCRIPTS
+   ═══════════════════════════════════════════════════ */
+
+const WRITING_DURATION_SECONDS = 60 * 60; // 60 minutes
+
+const timerEl  = document.getElementById('timer');
+const navbarEl = document.getElementById('navbar');
+const wrapper  = document.getElementById('writing-wrapper');
+
+let timerInterval;
+let totalSeconds = WRITING_DURATION_SECONDS;
+
+
+/* ── 1. START OVERLAY ─────────────────────────────── */
+
+// Inject a start overlay (same pattern as listening)
+const overlay = document.createElement('div');
+overlay.id = 'start-overlay';
+overlay.innerHTML = `
+  <h2>Writing Test</h2>
+  <p>You will have <strong>60 minutes</strong> to complete both tasks.</p>
+  <p style="color:#555; font-size:0.9em;">Task 1 — 20 min &nbsp;|&nbsp; Task 2 — 40 min</p>
+  <button id="start-btn" style="margin-top:20px; padding:12px 32px; font-size:1em; cursor:pointer;">
+    Begin Test
+  </button>
+`;
+// Reuse the listening overlay style already in base
+overlay.style.cssText = `
+  position:fixed; inset:0; z-index:9999;
+  background:rgba(255,255,255,0.95);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  gap:8px;
+`;
+document.body.appendChild(overlay);
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  overlay.remove();
+  wrapper.style.display = 'flex';
+  showTask(1);
+  startTimer();
+});
+
+
+/* ── 2. TIMER ─────────────────────────────────────── */
+
+function startTimer() {
+  timerInterval = setInterval(() => {
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      timerEl.textContent = '00:00';
+      submitAnswers();
+      return;
+    }
+
+    totalSeconds--;
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    const mm   = String(mins).padStart(2, '0');
+    const ss   = String(secs).padStart(2, '0');
+
+    // Mirror listening timer display + colour logic
+    if (totalSeconds <= 60) {
+      timerEl.textContent = `${ss} seconds remaining.`;
+      timerEl.className   = 'timer-critical';
+      navbarEl.style.backgroundColor = '#e3b6b9';
+    } else if (totalSeconds <= 300) {
+      timerEl.textContent = `${mm} minutes ${ss} seconds remaining.`;
+      timerEl.className   = 'timer-warning';
+    } else {
+      timerEl.textContent = `${mm} minutes remaining.`;
+      timerEl.className   = '';
+    }
+  }, 1000);
+}
+
+
+/* ── 3. TAB / PANEL SWITCHING ─────────────────────── */
+
+function showTask(num) {
+  document.querySelectorAll('.writing-panel').forEach((panel, i) => {
+    panel.style.display = (i + 1 === num) ? 'flex' : 'none';
+  });
+  document.querySelectorAll('#section-tabs button').forEach((btn, i) => {
+    btn.classList.toggle('active', i + 1 === num);
+  });
+}
+
+
+/* ── 4. RESIZER (one per task panel) ──────────────── */
+
+function initResizer(resizerEl) {
+  // Walk up to find the containing split-container,
+  // then grab its left child
+  const container = resizerEl.closest('.split-container');
+  const leftPanel  = container.querySelector('.split-left');
+
+  resizerEl.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    resizerEl.classList.add('active');
+
+    function onMove(e) {
+      const rect       = container.getBoundingClientRect();
+      const newWidth   = e.clientX - rect.left;
+      const minW       = 220;
+      const maxW       = rect.width - 220;
+      leftPanel.style.flex  = 'none';
+      leftPanel.style.width = Math.min(Math.max(newWidth, minW), maxW) + 'px';
+    }
+
+    function onUp() {
+      resizerEl.classList.remove('active');
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup',   onUp);
+    }
+
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup',   onUp);
+  });
+}
+
+// Init all resizers after DOM is ready
+document.querySelectorAll('.resizer').forEach(initResizer);
+
+
+/* ── 5. WORD COUNTER ──────────────────────────────── */
+
+function injectWordCounter(textarea, targetMin) {
+  const counter = document.createElement('div');
+  counter.style.cssText = 'margin-top:6px; font-size:0.82em; color:#888; text-align:right;';
+  counter.textContent   = `0 / ${targetMin} words`;
+  textarea.insertAdjacentElement('afterend', counter);
+
+  textarea.addEventListener('input', () => {
+    const words = textarea.value.trim() === ''
+      ? 0
+      : textarea.value.trim().split(/\s+/).length;
+    const reached = words >= targetMin;
+    counter.textContent = `${words} / ${targetMin} words`;
+    counter.style.color = reached ? '#2a7a2a' : (words > targetMin * 0.9 ? '#c96000' : '#888');
+  });
+}
+
+// Task 1 target = 150 words, Task 2 target = 250 words
+const ta1 = document.getElementById('answer1');
+const ta2 = document.getElementById('answer2');
+if (ta1) injectWordCounter(ta1, 150);
+if (ta2) injectWordCounter(ta2, 250);
+
+
+/* ── 6. SUBMIT ────────────────────────────────────── */
+
+async function submitAnswers() {
+  const payload = {
+    task1: document.getElementById('answer1')?.value ?? '',
+    task2: document.getElementById('answer2')?.value ?? '',
+  };
+
+  try {
+    const response = await fetch('/api/submit-writing/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': getCookie('csrftoken'),
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    console.log('Writing submitted:', result);
+
+    window.onbeforeunload = null;
+    window.location.href = '/main/';  // ← absolute path (fixes the relative-URL bug)
+  } catch (err) {
+    console.error('Submission error:', err);
+    window.location.href = '/main/';
+  }
+}
+
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts  = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
+
+/* ── 7. PREVENT ACCIDENTAL REFRESH ───────────────── */
+
+window.onbeforeunload = () => 'The writing test is still in progress!';
+
+</script>
+
+{% endblock %}
