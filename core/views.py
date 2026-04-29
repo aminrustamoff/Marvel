@@ -95,7 +95,9 @@ def writing(request, pk1, pk2):
     task_1 = get_object_or_404(WritingTask1, pk=pk1)
     task_2 = get_object_or_404(WritingTask2, pk=pk2)
 
-    task_1_html = convert(task_1.question or '')
+    images = {img.label: img.image.url for img in task_1.images.all()}
+
+    task_1_html = convert(task_1.question or '', images)
     task_2_html = convert(task_2.question or '')
 
     return render(request, 'core/writing.html', {
