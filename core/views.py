@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, get_object_or_404, redirect
-from .models import ListeningTest, ReadingTest, ResultsTable, ListeningResults, ReadingResults, WritingResults
+from .models import ListeningTest, ReadingTest, WritingTask1, WritingTask2, ResultsTable, ListeningResults, ReadingResults, WritingResults
 import uuid
 from .utils.text_to_html import convert
 from .utils.normilizer import prepare
@@ -91,6 +91,19 @@ def reading(request, pk):
         'passage_3_test_html' : passage_3_test_html,
     })
 
+def writing(request, pk1, pk2):
+    task_1 = get_object_or_404(WritingTask1, pk=pk1)
+    task_2 = get_object_or_404(WritingTask2, pk=pk2)
+
+    task_1_html = convert(task_1.question or '')
+    task_2_html = convert(task_2.question or '')
+
+    return render(request, 'core/writing.html', {
+        'test_id' : f'{pk1}-{pk2}',
+        'task_1_html' : task_1_html,
+        'task_2_html' : task_2_html,
+    })
+
 
 class SubmitListeningAnswersView(APIView):
     def post(self, request):
@@ -179,7 +192,33 @@ class SubmitReadingAnswersView(APIView):
 class SubmitWritingAnswersView(APIView):
 
     def post(self, request):
-        pass
+        data = request.data
+        session_id = request.session.get('current_exam_id')
+
+        if not session_id:
+            return Response({"error": "No active session"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not isinstance(data, dict):
+            return Response({"error": "Invalid format"}, status=status.HTTP_400_BAD_REQUEST)
+
+        session_obj = get_object_or_404(ResultsTable, session_id=session_id)
+
+        # Guard: don't let them resubmit
+        if WritingResults.objects.filter(session=session_obj).exists():
+            return Response({"error": "Already submitted"}, status=status.HTTP_409_CONFLICT)
+
+        test_id = data.get('id')
+        if not test_id:
+            return Response({"error": "Missing test id"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        WritingResults.objects.create(
+            session=session_obj,
+            test_id=test_id,
+            task1_text=data['report'],
+            task2_text=data['essay'],
+        )
+
+        return Response({"message": "Submitted successfully"}, status=status.HTTP_200_OK)
     
 
 def view_results(request, session_id):

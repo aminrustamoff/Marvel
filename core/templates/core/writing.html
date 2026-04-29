@@ -5,8 +5,8 @@
 
 {% block nav_links %}
 <div id="timer">60:00</div>
-<!-- <div id="test_id"><b>{{ test.id }}</b></div> -->
-<!-- <button id="submit-btn" onclick="submitAnswers()">Submit</button> -->
+<div id="test_id"><b>{{ test_id }}</b></div>
+<button id="submit-btn" onclick="submitAnswers()">Submit</button>
 <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
 {% endblock %}
 
@@ -17,47 +17,40 @@
 /* ── Timer warning colours ───────────────────────── */
 .timer-warning  { color: #c96000 !important; }
 .timer-critical { color: #cc0000 !important; }
-#navbar.warn-bg { background-color: #fff3e0; }
-#navbar.crit-bg { background-color: #ffe0e0; }
 
-/* layout */
-
+/* ── Wrapper: pinned between navbar and tab bar ─────
+   Using position:fixed is the most reliable approach —
+   it doesn't depend on the parent flex chain from base.html */
 .writing-wrapper {
+    position: fixed;
+    top: 60px;     /* navbar height */
+    bottom: 52px;  /* tab bar height */
+    left: 0;
+    right: 0;
     display: flex;
     flex-direction: column;
-    height: 100vh;
-    padding-top: 60px;   /* below fixed navbar */
-    padding-bottom: 52px; /* above fixed tab bar */
     overflow: hidden;
 }
 
-.task-panel {
+/* ── Task panel fills the wrapper ───────────────────
+   min-height: 0 is the key fix — without it, flex children
+   refuse to shrink below their content height */
+.writing-panel {
     display: none;
-    flex: 1;
-    overflow: hidden;
-}
-
-.task-panel.active {
-    display: flex;
     flex-direction: column;
-}
-
-.split-container {
-    display: flex;
-    width: 100%;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
 }
 
-/* Title bar */
-
+/* ── Instruction bar: fixed height at top ─────────── */
 .instruction {
     border: 2px solid #e0e0de;
     background: #f0f0e9;
     border-radius: 6px;
-    padding: 10px 10px 10px 10px;
-    margin: 16px 16px 5px 16px;
-    flex-shrink: 0;           /* prevents it from being squished */
+    padding: 10px;
+    margin: 12px 16px 5px 16px;
+    flex-shrink: 0; /* never squish this */
 }
 
 .instruction-title {
@@ -66,48 +59,77 @@
     margin-bottom: 4px;
 }
 
-/* Left / Right panels */
-
-.split-left,
-.split-right {
-    overflow-y: auto;
-    padding: 28px 32px;
-    height: 100%;
+/* ── Split container fills remaining height ─────────── */
+.split-container {
+    display: flex;
+    flex: 1;
+    min-height: 0; /* same fix — allows container to shrink */
+    overflow: hidden;
+    width: 100%;
 }
 
+/* ── Left panel: scrollable passage ────────────────── */
 .split-left {
     flex: 1;
-    border-right: 1px solid #e0e0e0;
     min-width: 220px;
+    overflow-y: auto;
+    padding: 24px 32px;
+    border-right: 1px solid #e0e0e0;
     line-height: 1.75;
     color: #1a1a1a;
 }
 
+/* ── Right panel: flex column so textarea fills it ─── */
 .split-right {
     flex: 1;
     min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
     background: #fafafa;
+    overflow: hidden; /* textarea handles its own scroll */
+}
+
+/* ── Textarea fills the right panel completely ──────── */
+.textfield {
+    flex: 1;        /* grow to fill split-right */
+    min-height: 0;  /* allow shrinking */
+    width: 100%;
+    resize: none;   /* no manual resize handle needed */
+    border: 1.5px solid #d0d0d0;
+    border-radius: 6px;
+    padding: 14px;
+    font-size: 1em;
+    line-height: 1.7;
+    font-family: inherit;
+    color: #1a1a1a;
+    background: #fff;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+}
+
+.textfield:focus {
+    outline: none;
+    border-color: #0077cc;
 }
 
 /* ── Resizer ─────────────────────────────────────── */
-
 .resizer {
-    width: 22px;              /* ← match the handle icon width */
+    width: 22px;
     cursor: col-resize;
     flex-shrink: 0;
     position: relative;
-    background: transparent;  /* ← hide the wide element itself */
+    background: transparent;
     transition: background 0.15s;
 }
 
-/* Thin visual line — drawn with ::before, not the element itself */
 .resizer::before {
     content: '';
     position: absolute;
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: 2px;               /* visual line stays thin */
+    width: 2px;
     height: 100%;
     background: #d0d0d0;
     transition: background 0.15s;
@@ -118,14 +140,13 @@
     background: #0077cc;
 }
 
-/* Handle icon stays the same */
 .resizer::after {
     content: '↔';
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #ffffff;
+    background: #fff;
     border: 1.5px solid #b0b0b0;
     border-radius: 4px;
     width: 22px;
@@ -134,7 +155,7 @@
     text-align: center;
     font-size: 12px;
     color: #cfcfcf;
-    box-shadow: 0 1px 3px rgba(197, 197, 197, 0.726);
+    box-shadow: 0 1px 3px rgba(197,197,197,0.726);
     pointer-events: none;
 }
 
@@ -144,6 +165,34 @@
     color: #0077cc;
 }
 
+/* ── Bottom tab bar ─────────────────────────────── */
+#section-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #ffffff;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px;
+    border-top: 1px solid #919191;
+    z-index: 100;
+}
+
+#section-tabs button {
+    flex: 1;
+    margin: 0 5px;
+    padding: 10px;
+    color: black;
+    background: #ffffff;
+    border: 1px solid #ddd;
+    cursor: pointer;
+}
+
+#section-tabs button.active {
+    border: 1px solid black;
+    background: #d1d1d1;
+}
 
 </style>
 
@@ -338,7 +387,7 @@ document.querySelectorAll('.resizer').forEach(initResizer);
 
 function injectWordCounter(textarea, targetMin) {
   const counter = document.createElement('div');
-  counter.style.cssText = 'margin-top:6px; font-size:0.82em; color:#888; text-align:right;';
+  counter.style.cssText = 'flex-shrink:0; margin-top:6px; font-size:0.82em; color:#888; text-align:right;';
   counter.textContent   = `0 / ${targetMin} words`;
   textarea.insertAdjacentElement('afterend', counter);
 
@@ -363,12 +412,13 @@ if (ta2) injectWordCounter(ta2, 250);
 
 async function submitAnswers() {
   const payload = {
-    task1: document.getElementById('answer1')?.value ?? '',
-    task2: document.getElementById('answer2')?.value ?? '',
+    'id' : document.getElementById('test_id').innerText ?? '',
+    'report': document.getElementById('answer1')?.value ?? '',
+    'essay': document.getElementById('answer2')?.value ?? '',
   };
 
   try {
-    const response = await fetch('/api/submit-writing/', {
+    const response = await fetch('/api/submit/writing/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

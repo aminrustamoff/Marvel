@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import ListeningTest, ListeningTestImage, ReadingTest, ReadingTestImage
+from .models import ListeningTest, ListeningTestImage, ReadingTest, ReadingTestImage, WritingTask1, WritingTask1Images, WritingTask2
 
 
 class ListeningTestImageInline(admin.TabularInline):
@@ -13,6 +13,11 @@ class ReadingTestImageInline(admin.TabularInline):
     model = ReadingTestImage
     extra = 1
     fields = ('passage', 'label', 'image')
+
+class WrititngTestImageInline(admin.TabularInline):
+    model = WritingTask1Images
+    extra = 1
+    fields = ('label', 'image')
 
 
 @admin.register(ListeningTest)
@@ -66,3 +71,24 @@ class ReadingTestAdmin(admin.ModelAdmin):
             'classes': ('collapse',),
         }),
     )
+
+@admin.register(WritingTask1)
+class WritingTask1Admin(admin.ModelAdmin):
+    list_display = ('test_title', 'question_type', 'author', 'is_active', 'created_at')
+    list_display_links = ('test_title',)
+    list_filter = ('question_type','is_active', 'author', 'created_at',)
+    list_editable = ('is_active',)
+    search_fields = ('test_title',)
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
+    inlines = [WrititngTestImageInline]
+
+@admin.register(WritingTask2)
+class WritingTask2Admin(admin.ModelAdmin):
+    list_display = ('test_title', 'question_type', 'author', 'is_active', 'created_at')
+    list_display_links = ('test_title',)
+    list_filter = ('question_type','is_active', 'author', 'created_at',)
+    list_editable = ('is_active',)
+    search_fields = ('test_title',)
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
