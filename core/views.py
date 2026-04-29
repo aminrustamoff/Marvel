@@ -226,4 +226,9 @@ class SubmitWritingAnswersView(APIView):
 def view_results(request, session_id):
     listening_results = get_object_or_404(ListeningResults, session__session_id=session_id)
     reading_results = get_object_or_404(ReadingResults, session__session_id=session_id)
-    return render(request, 'core/results.html', {'listening_results': listening_results, 'reading_results': reading_results})
+    writing_results = get_object_or_404(WritingResults, session__session_id=session_id)
+    return render(request, 'core/results.html', {
+        'listening_results': listening_results,
+        'reading_results': reading_results,
+        'writing_results': writing_results
+    })

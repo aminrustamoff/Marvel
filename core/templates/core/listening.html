@@ -403,7 +403,7 @@ let totalSeconds;
 
 function parseTime(timeStr) {
     const [mins, secs] = timeStr.split(":").map(Number);
-    return mins * 60 + secs + 120; // add 2 minutes buffer
+    return mins * 60 + secs;
 }
 
 function startTimer() {
