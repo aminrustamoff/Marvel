@@ -14,8 +14,29 @@
         overflow: hidden;
     }
 
+    /* Main wrapper */
+    .ielts-container {
+        width: 760px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #222;
+    }
+
+    /* Main title */
+    .ielts-title {
+        font-size: 38px;
+        font-weight: 500;
+        color: #c8102e;
+        margin-top: 70px;
+        margin-bottom: 10px;
+    }
+
     /* Test cards */
     .test-card {
+        display: flex;
+        flex-direction: column;
         background: #fff;
         border: 2px solid #bdbdbd;
         border-radius: 8px;
@@ -32,116 +53,144 @@
         margin-bottom: 12px;
     }
 
-    .accordion {
-        width: 60%;
-        margin: 0 auto;
-    }
-
-    .arrow {
-        width: 50px;
-        height: 50px;
-    }
-
-    .accordion-item {
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        margin: 10px 0;
-        padding: 20px;
-        overflow: hidden;
-        background-color: #f0f0f0;
-    }
-
-    .accordion-header {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 20px;
-        height: 15vh;
-        background-color: #f0f0f0;
-        border: none;
-        cursor: pointer;
-        font-size: 1rem;
-        font-weight: 500;
-        text-align: left;
-        transition: background-color 0.2s;
-    }
-
-    .accordion-header:hover {
-        background-color: #e0e0e0;
-    }
-
-    .accordion-arrow {
+    /* Status text */
+    .status-text-done {
         font-size: 14px;
-        transition: transform 0.3s ease;
+        font-weight: 800;
+        color: #36d33b;
+        font-weight: 500;
     }
 
-    .accordion-arrow.open {
-        transform: rotate(180deg);
+    .status-text-not-done {
+        font-size: 14px;
+        font-weight: 800;
+        color: #e23629;
+        font-weight: 500;
     }
 
-    .accordion-body {
-        display: none;
-        padding: 16px;
-        background-color: #fff;
-        border-top: 1px solid #ccc;
-        text-align: center;
+    .time-info {
+        font-size: 14px;
+        color: #242424;
+        margin-top: 15px;
     }
-
-    .accordion-body.open {
+    
+    .video-box {
+        width: 100%;
+        background: #e8e8e8;
+        border: 2px solid #bdbdbd;
+        border-radius: 4px;
+        margin: 0 auto 12px;
+        margin-top: 12px;
         display: block;
     }
 
     .video-container {
-        width: 100%;
+        width: 95%;
         max-width: 800px;
-        border-radius: 8px;
+        border-radius: 3px;
         margin: 0 auto 12px;
+        margin-top: 20px;
         display: block;
+    }
+
+    .section-link {
+        display: inline-block;
+        width: fit-content;
+        margin-top: 8px;
+        text-decoration: none;
+        font-size: 1rem;
+        background-color: rgb(28, 15, 0);
+        color: white;
+        padding: 10px 30px 10px 30px;
+        border-radius: 4px;
+    }
+
+    .section-link:hover {
+        text-decoration: underline;
     }
 </style>
 
 <div class="test">
-    <div class="accordion">
+    <div class="ielts-container">
+
+        <div class="ielts-title">IELTS on computer</div>
 
         <div class="test-card" style="margin-top:100px;">
+
             <span class="test-title">Listening</span>
-            <!-- <span class="accordion-arrow"><img class="arrow"src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span> -->
-            <video controls class="video-container">
-                <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
-            </video>
+
             {% if listening_done %}
-                <span class="done-badge">✓ Completed</span>
+                <span class="status-text-done"><strong>Completed</strong></span>
             {% else %}
-                <a href="listening/1" class="section-link">Go to Listening</a>
+                <span class="status-text-not-done"><strong>Not Completed</strong></span>
+            {% endif %}
+
+            <span class="time-info">Timing: 30 minutes</span>
+
+            {% if not listening_done %}
+                <div class="video-box">
+                    <video controls class="video-container">
+                        <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
+                    </video>
+                </div>
+                {% if listening_done %}
+                    <span class="done-badge">✓ Completed</span>
+                {% else %}
+                    <a href="listening/1" class="section-link">Start Listening</a>
+                {% endif %}
             {% endif %}
         </div>
 
         <div class="test-card">
-            <spa class="test-title">Reading</span>
-            <!-- <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span> -->
-            <video controls class="video-container">
-                <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
-            </video>
+            <span class="test-title">Reading</span>
             {% if reading_done %}
-                <span class="done-badge">✓ Completed</span>
+                <span class="status-text-done"><strong>Completed</strong></span>
             {% else %}
-                <a href="reading/1" class="section-link">Go to Reading</a>
+                <span class="status-text-not-done"><strong>Not Completed</strong></span>
+            {% endif %}
+            <span class="time-info">Timing: 1 hour</span>
+
+            {% if not reading_done and listening_done %}
+                <div class="video-box">
+                    <video controls class="video-container">
+                        <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
+                    </video>
+                </div>
+                {% if reading_done %}
+                    <span class="done-badge">✓ Completed</span>
+                {% else %}
+                    <a href="reading/1" class="section-link">Start Reading</a>
+                {% endif %}
             {% endif %}
         </div>
 
         <div class="test-card">
             <span class="test-title">Writing</span>
-            <!-- <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span> -->
-            <video controls class="video-container">
-                <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
-            </video>
             {% if writing_done %}
-                <span class="done-badge">✓ Completed</span>
+                <span class="status-text-done"><strong>Completed</strong></span>
             {% else %}
-                <a href="writing/1/1" class="section-link">Go to Writing</a>
+                <span class="status-text-not-done"><strong>Not Completed</strong></span>
+            {% endif %}
+            <span class="time-info">Timing: 1 hour</span>
+
+            {% if not writing_done and reading_done %}
+                <div class="video-box">
+                    <video controls class="video-container">
+                        <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
+                    </video>
+
+                </div>
+                {% if writing_done %}
+                    <span class="done-badge">✓ Completed</span>
+                {% else %}
+                    <a href="writing/1/1" class="section-link">Start Writing</a>
+                {% endif %}
             {% endif %}
         </div>
+
+        {% if writing_done %}
+            <button class="section-link" style="margin-top: 30px; width: 100%;" onclick="window.location.href='/'">Finish Test</button>
+        {% endif %}
 
     </div>
 </div>
