@@ -68,16 +68,31 @@
 /* Overlay */
 #start-overlay {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(255, 255, 255, 0.9);
-    color: rgb(255, 28, 28);
+    inset: 0;
+    background: rgba(255,255,255,0.95);
     display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     z-index: 9999;
+    gap: 16px;
 }
+#start-overlay h2 { font-size: 1.6em; color: #e00000; }
+#start-overlay p  { color: #555; max-width: 420px; text-align: center; line-height: 1.6; }
+
+#start-btn {
+    padding: 14px 36px;
+    font-size: 1.1em;
+    font-weight: 700;
+    background: #dddddd;
+    color: #000000;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.15s;
+}
+#start-btn:hover { background: #aaaaaa; }
 
 /* Timer */
 #timer {
@@ -337,6 +352,7 @@ section-instructions-title {
 <!-- START SCREEN -->
 <div id="start-overlay">
     <h2>IELTS Listening Test</h2>
+    <p>You will listen to 4 audio recordings and answer questions based on them. The timer will start as soon as you click the "Start Test" button. You cannot pause or replay the audio, so make sure you're ready before you begin.</p>
     <button id="start-btn">Start Test</button>
 </div>
 

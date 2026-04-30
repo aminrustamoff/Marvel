@@ -2,33 +2,96 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home page</title>
-    <style>
-        button {
-            background: none;
-            border: none;
-            color: blue;
-            text-decoration: underline;
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 0;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Start Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .card {
+      background: #fff;
+      padding: 48px 40px;
+      width: 380px;
+      border-top: 20px solid #e01e37;
+      border-radius: 10px;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      color: #111;
+      margin-bottom: 6px;
+    }
+
+    p {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 32px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #111;
+      outline: none;
+      margin-bottom: 20px;
+      transition: border-color 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: #e01e37; }
+    input[type="text"]::placeholder { color: #bbb; }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background: #e01e37;
+      color: #fff;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+      border-radius: 4px;
+    }
+
+    button[type="submit"]:hover { background: #212121; }
+  </style>
 </head>
 <body>
-    <h1> Start your test </h1>
+  <div class="card">
+    <h1>Start Your Test</h1>
+    <p>Enter your name to begin</p>
 
     <form action="{% url 'main' %}" method="POST">
-        {% csrf_token %}
-        
-        <input type="text" name="username" placeholder="Enter your name" required>
-        
-        <button type="submit" style="cursor: pointer; padding: 10px 20px;">
-            START TEST
-        </button>
+      {% csrf_token %}
+      <label for="username">Full Name</label>
+      <input type="text" id="username" name="username" placeholder="John Smith" required />
+      <button type="submit">Start Test</button>
     </form>
-
+  </div>
 </body>
 </html>

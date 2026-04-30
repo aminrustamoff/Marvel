@@ -76,7 +76,7 @@
     
     .video-box {
         width: 100%;
-        background: #e8e8e8;
+        background: #EDEBE9;
         border: 2px solid #bdbdbd;
         border-radius: 4px;
         margin: 0 auto 12px;
@@ -84,14 +84,90 @@
         display: block;
     }
 
+    .video-box-title {
+        display: inline-block;
+        font-size: 16px;
+        font-weight: 600;
+        color: #222;
+        margin: 12px 0 8px 12px;
+    }
+
+    .video-box-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px; /* spacing between title, status and arrow */
+        cursor: pointer;
+        padding: 12px;
+    }
+
+    .video-box-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease;
+    }
+
+    .video-box-content.open {
+        display: block;
+        max-height: 600px; /* set to bigger than actual content height */
+    }
+
+    /* Rotate arrow when open */
+    .video-box-arrow {
+        transition: transform 0.3s ease;
+    }
+
+    .video-box.open .video-box-arrow {
+        transform: rotate(180deg);
+    }
+
     .video-container {
         width: 95%;
         max-width: 800px;
         border-radius: 3px;
         margin: 0 auto 12px;
-        margin-top: 20px;
+        margin-top: 5px;
         display: block;
     }
+
+    .confirm-guidance {
+        display: block;
+        margin: 0 auto 20px;
+        padding: 10px 30px;
+        font-size: 1rem;
+        background-color: rgb(212, 0, 0);
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .confirm-guidance:disabled {
+        background-color: rgba(201, 65, 65, 0.522);
+        color: rgba(255, 255, 255, 0.712);
+        cursor: not-allowed;
+    }
+
+    .confirm-guidance-status {
+        display: inline-block;
+        font-size: 14px;
+        color: #e23629;
+        margin-top: 8px;
+        margin-left: 12px;
+    }
+
+    .status-done-icon {
+        position: absolute;
+        width: 60px;
+        height: 100%;
+        right: 20px;        /* adjust as needed */
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    img.icon {
+        filter: invert(1);                  /* makes it white */
+        transition: filter 0.2s ease;     /* smooth transition */}
 
     .section-link {
         display: inline-block;
@@ -108,6 +184,40 @@
     .section-link:hover {
         text-decoration: underline;
     }
+
+    .section-link-disabled {
+        display: inline-block;
+        width: fit-content;
+        margin-top: 8px;
+        text-decoration: none;
+        font-size: 1rem;
+        background-color: rgb(48, 48, 48);
+        color: rgb(224, 224, 224);
+        padding: 10px 30px 10px 30px;
+        border-radius: 4px;
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Remove fullscreen button */
+    video::-webkit-media-controls-fullscreen-button {
+        display: none;
+    }
+
+    /* Remove options/overflow menu button */
+    video::-webkit-media-controls-overflow-button {
+        display: none;
+    }
+
+    video::-webkit-media-controls-panel {
+        background-image: none !important;
+    }
+
+    video::-webkit-media-controls-panel {
+        filter: invert(1);
+    }
+
 </style>
 
 <div class="test">
@@ -121,6 +231,7 @@
 
             {% if listening_done %}
                 <span class="status-text-done"><strong>Completed</strong></span>
+                <img src="{% static 'core/icons/done.svg' %}" alt="Done" class="status-done-icon">
             {% else %}
                 <span class="status-text-not-done"><strong>Not Completed</strong></span>
             {% endif %}
@@ -129,14 +240,25 @@
 
             {% if not listening_done %}
                 <div class="video-box">
-                    <video controls class="video-container">
-                        <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
-                    </video>
+                    <div class="video-box-header">
+                        <img src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow" class="video-box-arrow">
+                        <span class="video-box-title">Test Information</span>
+                        <span class="confirm-guidance-status">Not confirmed</span>
+                    </div>
+                    <div class="video-box-content">
+                        <video controls class="video-container">
+                            <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
+                        </video>
+                        <button class="confirm-guidance" id="enable-reading">I confirm</button>
+                    </div>
                 </div>
                 {% if listening_done %}
                     <span class="done-badge">✓ Completed</span>
                 {% else %}
-                    <a href="listening/1" class="section-link">Start Listening</a>
+                    <a href="listening/1" class="section-link-disabled" id="listening-link">
+                        <img class="icon" src="{% static 'core/icons/arrow-right.svg' %}" alt="Arrow" style="width:16px; vertical-align:middle; margin-right:6px; fill: #fff;">
+                        Start Listening
+                    </a>
                 {% endif %}
             {% endif %}
         </div>
@@ -145,6 +267,7 @@
             <span class="test-title">Reading</span>
             {% if reading_done %}
                 <span class="status-text-done"><strong>Completed</strong></span>
+                <img src="{% static 'core/icons/done.svg' %}" alt="Done" class="status-done-icon">
             {% else %}
                 <span class="status-text-not-done"><strong>Not Completed</strong></span>
             {% endif %}
@@ -152,14 +275,25 @@
 
             {% if not reading_done and listening_done %}
                 <div class="video-box">
-                    <video controls class="video-container">
-                        <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
-                    </video>
+                    <div class="video-box-header">
+                        <img src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow" class="video-box-arrow">
+                        <span class="video-box-title">Test Information</span>
+                        <span class="confirm-guidance-status">Not confirmed</span>
+                    </div>
+                    <div class="video-box-content">
+                        <video controls class="video-container">
+                            <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
+                        </video>
+                        <button class="confirm-guidance" id="enable-reading">I confirm</button>
+                    </div>
                 </div>
                 {% if reading_done %}
                     <span class="done-badge">✓ Completed</span>
                 {% else %}
-                    <a href="reading/1" class="section-link">Start Reading</a>
+                    <a href="reading/1" class="section-link-disabled" id="reading-link">
+                        <img class="icon" src="{% static 'core/icons/arrow-right.svg' %}" alt="Arrow" style="width:16px; vertical-align:middle; margin-right:6px; color: #fff;">
+                        Start Reading
+                    </a>
                 {% endif %}
             {% endif %}
         </div>
@@ -168,6 +302,7 @@
             <span class="test-title">Writing</span>
             {% if writing_done %}
                 <span class="status-text-done"><strong>Completed</strong></span>
+                <img src="{% static 'core/icons/done.svg' %}" alt="Done" class="status-done-icon">
             {% else %}
                 <span class="status-text-not-done"><strong>Not Completed</strong></span>
             {% endif %}
@@ -175,15 +310,25 @@
 
             {% if not writing_done and reading_done %}
                 <div class="video-box">
-                    <video controls class="video-container">
-                        <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
-                    </video>
-
+                    <div class="video-box-header">
+                        <img src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow" class="video-box-arrow">
+                        <span class="video-box-title">Test Information</span>
+                        <span class="confirm-guidance-status">Not confirmed</span>
+                    </div>
+                    <div class="video-box-content">
+                        <video controls class="video-container">
+                            <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
+                        </video>
+                        <button class="confirm-guidance" id="enable-writing">I confirm</button>
+                    </div>
                 </div>
                 {% if writing_done %}
                     <span class="done-badge">✓ Completed</span>
                 {% else %}
-                    <a href="writing/1/1" class="section-link">Start Writing</a>
+                    <a href="writing/1/1" class="section-link-disabled" id="writing-link">
+                        <img class="icon" src="{% static 'core/icons/arrow-right.svg' %}" alt="Arrow" style="width:16px; vertical-align:middle; margin-right:6px; color: #fff;">
+                        Start Writing
+                    </a>
                 {% endif %}
             {% endif %}
         </div>
@@ -195,4 +340,59 @@
     </div>
 </div>
 
+<script>
+    document.querySelectorAll(".test-card").forEach(card => {
+        const video = card.querySelector("video");
+        const confirmBtn = card.querySelector(".confirm-guidance");
+        const link = card.querySelector("a");
+        const status = card.querySelector(".confirm-guidance-status");
+
+        if (!video || !confirmBtn) return;
+
+        // initial state
+        confirmBtn.disabled = true;
+
+        // enable button after video ends
+        video.addEventListener("ended", () => {
+            confirmBtn.disabled = false;
+        });
+
+        // click confirm button
+        confirmBtn.addEventListener("click", () => {
+
+            // enable link
+            if (link) {
+                link.classList.remove("section-link-disabled");
+                link.classList.add("section-link");
+            }
+
+            // update status text + color
+            if (status) {
+                status.textContent = "Confirmed";
+                status.style.color = "#36d33b";
+                status.style.fontWeight = "bold";
+            }
+        });
+    });
+
+    document.querySelector('.video-box-header').addEventListener('click', function () {
+        const box = this.closest('.video-box');
+        const content = box.querySelector('.video-box-content');
+
+        box.classList.toggle('open');
+        content.classList.toggle('open');
+
+        // Pause video when closing
+        if (!box.classList.contains('open')) {
+            box.querySelector('video').pause();
+        }
+    });
+
+    const video = document.querySelector('video');
+
+    video.controlsList.add('nodownload');
+    video.controlsList.add('noplaybackrate');
+    video.controlsList.add('noremoteplayback');
+    video.disablePictureInPicture = true;
+</script>
 {% endblock %}
