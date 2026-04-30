@@ -11,13 +11,25 @@
 <style>
     .test {
         display: flex;
-        overflow: scroll;
+        overflow: hidden;
     }
 
-    .main-section-title {
+    /* Test cards */
+    .test-card {
+        background: #fff;
+        border: 2px solid #bdbdbd;
+        border-radius: 8px;
+        padding: 22px 26px;
+        margin-bottom: 18px;
+        position: relative;
+    }
+
+    /* Card title */
+    .test-title {
         font-size: 30px;
-        margin: 20px 40px;
-        font-weight: 100;
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 12px;
     }
 
     .accordion {
@@ -92,9 +104,9 @@
 <div class="test">
     <div class="accordion">
 
-        <div class="accordion-item" style="margin-top:100px;">
-            <span calss="main-section-title">Listening</span>
-            <span class="accordion-arrow"><img class="arrow"src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
+        <div class="test-card" style="margin-top:100px;">
+            <span class="test-title">Listening</span>
+            <!-- <span class="accordion-arrow"><img class="arrow"src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span> -->
             <video controls class="video-container">
                 <source src="{% static 'core/videos/listening.mp4' %}" type="video/mp4">
             </video>
@@ -105,9 +117,9 @@
             {% endif %}
         </div>
 
-        <div class="accordion-item">
-            <spa calss="main-section-title">Reading</span>
-            <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
+        <div class="test-card">
+            <spa class="test-title">Reading</span>
+            <!-- <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span> -->
             <video controls class="video-container">
                 <source src="{% static 'core/videos/reading.mp4' %}" type="video/mp4">
             </video>
@@ -118,9 +130,9 @@
             {% endif %}
         </div>
 
-        <div class="accordion-item">
-            <span calss="main-section-title">Writing</span>
-            <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span>
+        <div class="test-card">
+            <span class="test-title">Writing</span>
+            <!-- <span class="accordion-arrow"><img class="arrow" src="{% static 'core/icons/arrow-down.svg' %}" alt="Arrow"></span> -->
             <video controls class="video-container">
                 <source src="{% static 'core/videos/writing.mp4' %}" type="video/mp4">
             </video>
