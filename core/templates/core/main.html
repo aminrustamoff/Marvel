@@ -13,25 +13,51 @@
         height: 100vh;
         display: flex;
         overflow-y: auto;
+        padding-bottom: 30px;
     }
 
     /* Main wrapper */
     .ielts-container {
-        width: 760px;
+        width: 860px;
         margin: 0 auto;
         padding: 20px;
+        margin-bottom: 20px;
         background: #ffffff;
         font-family: Arial, Helvetica, sans-serif;
         color: #222;
+        box-sizing: border-box;
     }
 
     /* Main title */
     .ielts-title {
         font-size: 38px;
-        font-weight: 500;
+        font-weight: 700;
         color: #c8102e;
         margin-top: 70px;
         margin-bottom: 10px;
+    }
+
+    /* Today text heading */
+
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 20px 0;
+    }
+
+    .section-heading span {
+        font-size: 24px;
+        font-weight: 600;
+        color: #222;
+        white-space: nowrap;
+    }
+
+    .section-heading::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: #cfcfcf;
     }
 
     /* Test cards */
@@ -116,6 +142,9 @@
 
     /* Rotate arrow when open */
     .video-box-arrow {
+        width: 14px;
+        height: auto;
+        margin-left: 15px;
         transition: transform 0.3s ease;
     }
 
@@ -237,9 +266,13 @@
 <div class="test">
     <div class="ielts-container">
 
-        <div class="ielts-title">IELTS on computer</div>
+        <div class="ielts-title">IELTS on Computer</div>
 
-        <div class="test-card" style="margin-top:100px;">
+        <div class="section-heading">
+            <span>Today</span>
+        </div>
+
+        <div class="test-card">
 
             <span class="test-title">Listening</span>
 
@@ -350,6 +383,9 @@
         {% if writing_done %}
             <button class="section-link" style="margin-top: 30px; width: 100%;" onclick="window.location.href='/'">Finish Test</button>
         {% endif %}
+
+        <br/>
+        <br/>
 
     </div>
 </div>

@@ -182,33 +182,42 @@
     color: #0077cc;
 }
 
-/* ── Bottom tab bar ─────────────────────────────── */
+/* ── Bottom Tab Bar ──────────────────────────────── */
+
 #section-tabs {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background: #ffffff;
+    background: #fff;
     display: flex;
     justify-content: space-around;
-    padding: 10px;
-    border-top: 1px solid #919191;
-    z-index: 100;
+    padding: 8px 12px;
+    border-top: 1px solid #d0d0d0;
+    z-index: 900;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
 }
 
 #section-tabs button {
     flex: 1;
     margin: 0 5px;
-    padding: 10px;
-    color: black;
+    padding: 9px 0;
     background: #ffffff;
-    border: 1px solid #ddd;
     cursor: pointer;
+    border: none;
+    font-size: 0.9em;
+    font-weight: 500;
+    text-align: left;
+    color: #333;
+    transition: background 0.15s, border-color 0.15s;
 }
-
+#section-tabs button:hover {
+    background: #eeeeee;
+}
 #section-tabs button.active {
-    border: 1px solid black;
-    background: #d1d1d1;
+    background: #ffffff;
+    color: #000000;
+    font-weight: 700;
 }
 
 /* ───── Image insert ───── */
@@ -300,8 +309,8 @@
 
 <!-- ── BOTTOM TAB BAR ──────────────────────────────── -->
 <div id="section-tabs">
-    <button onclick="showTask(1)" id="tab1">Task 1</button>
-    <button onclick="showTask(2)" id="tab2">Task 2</button>
+    <button onclick="showTask(1)" id="tab1">Part 1</button>
+    <button onclick="showTask(2)" id="tab2">Part 2</button>
 </div>
 
 <script>
