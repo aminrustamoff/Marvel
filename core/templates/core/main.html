@@ -4,6 +4,7 @@
 {% block content %}
 
 {% block nav_links %}
+<span id="session-id">{{ session_id }}</span>
 <div id="username">{{ duration }}</div>
 
 {% endblock %}
@@ -14,6 +15,14 @@
         display: flex;
         overflow-y: auto;
         padding-bottom: 30px;
+    }
+
+    #session-id {
+        position: fixed;
+        top: 10px;
+        left: 140px;
+        font-size: 15px;
+        z-index: 10000;
     }
 
     /* Main wrapper */

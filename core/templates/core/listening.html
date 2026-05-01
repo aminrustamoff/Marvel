@@ -5,7 +5,12 @@
 {% block nav_links %}
 <!-- TIMER -->
 <div id="timer">{{ duration }}</div>
-<div id="test_id"><b>{{ test.id }}</b></div>
+<div>
+  <div id="test_id">
+    <b>{{ test.id }}</b>
+  </div>
+  <span id="session-id">{{ session_id }}</span>
+</div>
 <button onclick="submitAnswers()">Submit</button>
 <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
 {% endblock %}
@@ -13,6 +18,23 @@
 {% block content %}
 
 <style>
+
+#session-id {
+    color: #8f8f8f;
+    position: fixed;
+    top: 10px;
+    left: 140px;
+    font-size: 15px;
+    z-index: 10000;
+}
+
+#test_id {
+    position: fixed;
+    top: 10px;
+    left: 280px;
+    font-size: 15px;
+    z-index: 10000;
+}
 /* Hide all sections initially */
 .section {
     display: none;
@@ -104,14 +126,6 @@
 #timer {
     position: fixed;
     top: 30px;
-    left: 140px;
-    font-size: 15px;
-    z-index: 10000;
-}
-
-#test_id {
-    position: fixed;
-    top: 10px;
     left: 140px;
     font-size: 15px;
     z-index: 10000;

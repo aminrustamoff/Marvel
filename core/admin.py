@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import ListeningTest, ListeningTestImage, ReadingTest, ReadingTestImage, WritingTask1, WritingTask1Images, WritingTask2
+from .models import ListeningTest, ListeningTestImage, ReadingTest, ReadingTestImage, WritingTask1, WritingTask1Images, WritingTask2, ExamSession
 
 
 class ListeningTestImageInline(admin.TabularInline):
@@ -19,6 +19,15 @@ class WrititngTestImageInline(admin.TabularInline):
     extra = 1
     fields = ('label', 'image')
 
+@admin.register(ExamSession)
+class ExamSessionAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_open', 'author', 'created_at')
+    list_display_links  = ('name',)
+    list_filter = ('is_open', 'author', 'created_at',)
+    list_editable = ('is_open',)
+    search_fields = ('name',)
+    readonly_fields = ('created_at',)
+    ordering = ('-created_at',)
 
 @admin.register(ListeningTest)
 class ListeningTestAdmin(admin.ModelAdmin):

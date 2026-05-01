@@ -40,6 +40,27 @@
       margin-bottom: 32px;
     }
 
+    select {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      color: #111;
+      outline: none;
+      margin-bottom: 20px;
+      background: #fff;
+      cursor: pointer;
+      transition: border-color 0.2s;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23888' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+    }
+
+    select:focus { border-color: #e01e37; }
+
     label {
       display: block;
       font-size: 12px;
@@ -88,6 +109,16 @@
 
     <form action="{% url 'main' %}" method="POST">
       {% csrf_token %}
+      <!-- inside <form>, above the name label -->
+      <label for="exam_session">Exam Session</label>
+      <select id="exam_session" name="exam_session" required>
+        <option value="" disabled selected>— Select a session —</option>
+        {% for session in exam_sessions %}
+          <option value="{{ session.pk }}">{{ session.name }}</option>
+        {% empty %}
+          <option disabled>No open sessions available</option>
+        {% endfor %}
+      </select>
       <label for="username">Full Name</label>
       <input type="text" id="username" name="username" placeholder="John Smith" required />
       <button type="submit">Start Test</button>

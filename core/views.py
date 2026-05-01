@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse, get_object_or_404, redirect
-from .models import ListeningTest, ReadingTest, WritingTask1, WritingTask2, ResultsTable, ListeningResults, ReadingResults, WritingResults
+from .models import ListeningTest, ReadingTest, WritingTask1, WritingTask2, ResultsTable, ListeningResults, ReadingResults, WritingResults, ExamSession
 import uuid
 from .utils.text_to_html import convert
 from .utils.normilizer import prepare
@@ -11,7 +11,11 @@ from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
 
 def home(request):
-    return render(request, 'core/home.html')
+    exam_sessions = ExamSession.objects.filter(is_open=True)
+    return render(request, 'core/home.html', {'exam_sessions' : exam_sessions})
+
+
+# pass the exam session here to the main page
 
 def main(request):
     if request.method == "POST":
@@ -27,6 +31,7 @@ def main(request):
         return redirect('main')
     session_id = request.session.get('current_exam_id')
     context = {
+        'session_id' : session_id,
         'listening_done': False,
         'reading_done': False,
         'writing_done': False,
@@ -58,7 +63,10 @@ def listening(request, pk):
 
     duration = f'{test.duration // 60}:{test.duration % 60:02d}' if test.duration else '0:00'
 
+    session_id = request.session.get('current_exam_id')
+
     return render(request, 'core/listening.html', {
+        'session_id' : session_id,
         'test': test,
         'section1_html': section1_html,
         'section2_html': section2_html,
@@ -80,8 +88,10 @@ def reading(request, pk):
     passage_2_test_html = convert(reading_test.passage_2_test or '', images)
     passage_3_test_html = convert(reading_test.passage_3_test or '', images)
 
+    session_id = request.session.get('current_exam_id')
 
     return render(request, 'core/reading.html', {
+        'session_id' : session_id,
         'test': reading_test,
         'passage_1_html' : passage_1_html,
         'passage_2_html' : passage_2_html,
@@ -100,7 +110,10 @@ def writing(request, pk1, pk2):
     task_1_html = convert(task_1.question or '', images)
     task_2_html = convert(task_2.question or '')
 
+    session_id = request.session.get('current_exam_id')
+
     return render(request, 'core/writing.html', {
+        'session_id' : session_id,
         'test_id' : f'{pk1}-{pk2}',
         'task_1_html' : task_1_html,
         'task_2_html' : task_2_html,

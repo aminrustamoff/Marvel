@@ -160,8 +160,26 @@ class WritingTask2(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+class ExamSession(models.Model):
+    """An exam sitting created by the admin (e.g. 'Group A – May 2026')."""
+    name        = models.CharField(max_length=150)          # shown in dropdown
+    description = models.CharField(max_length=300, blank=True)
+    is_open     = models.BooleanField(default=True)         # admin can open/close
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name}"
+
 
 class ResultsTable(models.Model):
+
+    exam_session = models.ForeignKey(           # ← new
+        'ExamSession',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='results'
+    )
     session_id = models.CharField(max_length=50, primary_key=True, unique=True)
     username = models.CharField(max_length=100)
     session_date = models.DateTimeField(auto_now_add=True)
