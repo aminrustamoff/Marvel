@@ -10,8 +10,9 @@
 
 <style>
     .test {
+        height: 100vh;
         display: flex;
-        overflow: hidden;
+        overflow-y: auto;
     }
 
     /* Main wrapper */
@@ -76,12 +77,13 @@
     
     .video-box {
         width: 100%;
-        background: #EDEBE9;
+        background: #ffffff;/* #EDEBE9 */
         border: 2px solid #bdbdbd;
         border-radius: 4px;
         margin: 0 auto 12px;
         margin-top: 12px;
-        display: block;
+        display: block; 
+        transition: background 0.3s ease;
     }
 
     .video-box-title {
@@ -115,6 +117,10 @@
     /* Rotate arrow when open */
     .video-box-arrow {
         transition: transform 0.3s ease;
+    }
+
+    .video-box.open {
+        background: #EDEBE9;
     }
 
     .video-box.open .video-box-arrow {
@@ -216,6 +222,14 @@
 
     video::-webkit-media-controls-panel {
         filter: invert(1);
+    }
+
+    .test::-webkit-scrollbar {
+        display: none;
+    }
+
+    .test {
+        scrollbar-width: none; /* Firefox */
     }
 
 </style>
