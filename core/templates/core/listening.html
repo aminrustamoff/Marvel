@@ -2,23 +2,34 @@
 {% load static %}
 
 {% block title %}Listening Test{% endblock %}
+
 {% block nav_links %}
-<!-- TIMER -->
 <div id="timer">{{ duration }}</div>
 <div>
-  <div id="test_id">
-    <b>{{ test.id }}</b>
-  </div>
+  <div id="test_id"><b>{{ test.id }}</b></div>
   <span id="session-id">{{ session_id }}</span>
 </div>
 <button onclick="submitAnswers()">Submit</button>
-<img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
+<button onclick="toggleNotesSidebar()" id="notes-nav-btn">
+    <!-- ADD NOTES ICON HERE -->
+    <img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
+</button>
 {% endblock %}
 
 {% block content %}
-
 <style>
 
+/* ═══════════════════════════════════════════════════
+   CSS VARIABLES & RESET
+   ═══════════════════════════════════════════════════ */
+:root {
+    --navbar-h: 60px;
+    --tabbar-h: 60px;   /* updated dynamically by JS */
+}
+
+/* ═══════════════════════════════════════════════════
+   FIXED POSITION UI (navbar badges, timer)
+   ═══════════════════════════════════════════════════ */
 #session-id {
     color: #8f8f8f;
     position: fixed;
@@ -27,7 +38,6 @@
     font-size: 15px;
     z-index: 10000;
 }
-
 #test_id {
     position: fixed;
     top: 10px;
@@ -35,65 +45,17 @@
     font-size: 15px;
     z-index: 10000;
 }
-/* Hide all sections initially */
-.section {
-    display: none;
-}
-
-/* ── Bottom Tab Bar ──────────────────────────────── */
-
-#section-tabs {
+#timer {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #fff;
-    display: flex;
-    justify-content: space-around;
-    padding: 8px 12px;
-    border-top: 1px solid #d0d0d0;
-    z-index: 900;
-    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+    top: 30px;
+    left: 140px;
+    font-size: 15px;
+    z-index: 10000;
 }
 
-#section-tabs button {
-    flex: 1;
-    margin: 0 5px;
-    padding: 9px 0;
-    background: #ffffff;
-    cursor: pointer;
-    border: none;
-    font-size: 0.9em;
-    font-weight: 500;
-    text-align: left;
-    color: #333;
-    transition: background 0.15s, border-color 0.15s;
-}
-#section-tabs button:hover {
-    background: #eeeeee;
-}
-#section-tabs button.active {
-    background: #ffffff;
-    color: #000000;
-    font-weight: 700;
-}
-
-.listening-text-container {
-    margin-bottom: 100px;
-    margin-top: 80px;
-    padding-left: 100px;
-    padding-right: 100px;
-    padding-bottom: 150px;
-    display: flex;
-    max-width: 100%;
-    flex: 1;
-    height: 100vh;
-    overflow-y:   auto;
-}
-
-/* #test-content { display: none; } */
-
-/* Overlay */
+/* ═══════════════════════════════════════════════════
+   START OVERLAY
+   ═══════════════════════════════════════════════════ */
 #start-overlay {
     position: fixed;
     inset: 0;
@@ -107,13 +69,12 @@
 }
 #start-overlay h2 { font-size: 1.6em; color: #e00000; }
 #start-overlay p  { color: #555; max-width: 420px; text-align: center; line-height: 1.6; }
-
 #start-btn {
     padding: 14px 36px;
     font-size: 1.1em;
     font-weight: 700;
     background: #dddddd;
-    color: #000000;
+    color: #000;
     border: none;
     border-radius: 7px;
     cursor: pointer;
@@ -122,30 +83,34 @@
 }
 #start-btn:hover { background: #aaaaaa; }
 
-/* Timer */
-#timer {
-    position: fixed;
-    top: 30px;
-    left: 140px;
-    font-size: 15px;
-    z-index: 10000;
+/* ═══════════════════════════════════════════════════
+   MAIN LAYOUT WRAPPER
+   — flex row: [test content] [notes sidebar]
+   — sits between navbar (top) and tab bar (bottom)
+   ═══════════════════════════════════════════════════ */
+#main-wrapper {
+    display: none;                /* shown by JS on test start */
+    flex-direction: row;
+    height: calc(100vh - var(--navbar-h) - var(--tabbar-h));
+    margin-top: var(--navbar-h);
+    overflow: hidden;
 }
 
-/* Hide sections initially */
-.section { display: none; }
-
-/* Button */
-#start-btn {
-    padding: 15px 30px;
-    font-size: 20px;
-    cursor: pointer;
+/* ═══════════════════════════════════════════════════
+   TEST CONTENT
+   ═══════════════════════════════════════════════════ */
+#test-content {
+    flex: 1;
+    min-width: 0;                 /* prevent flex overflow */
+    overflow-y: auto;
+    padding: 20px 100px 40px;
+    transition: flex 0.25s ease;
 }
 
-/* section instructions */
-
-section-instructions-title {
-    font-size: 1.2em;
-    margin-bottom: 5px;
+.section {
+    display: none;
+    width: 100%;
+    margin-bottom: 60px;
 }
 
 .instruction {
@@ -154,499 +119,909 @@ section-instructions-title {
     border-radius: 6px;
     padding: 10px 15px;
     margin: .8rem 0;
+    width: 100%;
+}
+
+/* ═══════════════════════════════════════════════════
+   NOTES SIDEBAR (in-flow — pushes test content)
+   ═══════════════════════════════════════════════════ */
+
+#notes-nav-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+}
+
+#notes-sidebar {
+    width: 0;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    border-left: none;
+    transition: width 0.25s ease;
+}
+#notes-sidebar.open {
+    width: 320px;
+    border-left: 1px solid #d0d0d0;
+    box-shadow: -4px 0 16px rgba(0,0,0,0.06);
+}
+#notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+#notes-header button {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: #888;
+    padding: 0;
+}
+#notes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.note-card {
+    background: #fffde7;
+    border: 1px solid #ffe082;
+    border-radius: 7px;
+    padding: 10px 12px;
+    font-size: 13px;
+    cursor: pointer;
+}
+.note-card .note-quote {
+    color: #888;
+    font-style: italic;
+    border-left: 3px solid #ffe066;
+    padding-left: 7px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.note-card .note-text { color: #333; }
+.note-card .note-delete {
+    float: right;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #bbb;
+    font-size: 15px;
+    padding: 0;
+    line-height: 1;
+}
+.note-card .note-delete:hover { color: #e00; }
+.note-input-area {
+    width: 100%;
+    border: 1px solid #ffe082;
+    border-radius: 5px;
+    padding: 6px 8px;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+    margin-top: 6px;
+    box-sizing: border-box;
+    outline: none;
+}
+.note-save-btn {
+    margin-top: 6px;
+    padding: 4px 14px;
+    background: #0077cc;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+}
+.note-save-btn:hover { background: #005fa3; }
+
+/* ═══════════════════════════════════════════════════
+   HIGHLIGHT & SELECTION POPUP
+   ═══════════════════════════════════════════════════ */
+#selection-popup {
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+    display: flex;
+    gap: 0;
+    overflow: hidden;
+    transform: translateX(-50%);
+}
+#selection-popup button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    color: #333;
+    border-right: 1px solid #eee;
+    transition: background 0.12s;
+}
+#selection-popup button:last-child { border-right: none; }
+#selection-popup button:hover { background: #f5f5f5; }
+#selection-popup button img,
+#selection-popup button svg { width: 18px; height: 18px; }
+
+.highlighted {
+    background: #ffe066;
+    border-radius: 2px;
+    cursor: pointer;
+}
+.highlighted:hover { background: #ffd700; }
+
+.highlighted-note {
+    background: #b2f0f0;
+    border-radius: 2px;
+    cursor: pointer;
+}
+.highlighted-note:hover { background: #7de0e0; }
+
+/* ═══════════════════════════════════════════════════
+   BOTTOM TAB BAR
+   ═══════════════════════════════════════════════════ */
+
+/* ── Question Nav Buttons ───────────────────────── */
+/* Change bottom/right here to reposition the buttons */
+#question-nav-btns {
+    position: fixed;
+    bottom: 75px;   /* ← distance from bottom */
+    right: 24px;    /* ← distance from right  */
+    display: none;  /* shown by JS on test start */
+    gap: 8px;
+    z-index: 1000;
+}
+#question-nav-btns button {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    background: #000000;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transition: background 0.15s, box-shadow 0.15s;
+}
+#question-nav-btns button:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+#question-nav-btns button:active { transform: scale(0.95); }
+#question-nav-btns button img {
+    width: 20px;
+    height: 20px;
+    filter: brightness(0) invert(1);
 }
 
 
-/* ============================ */
+#section-tabs {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    display: flex;
+    align-items: flex-end;
+    padding: 6px 12px 12px;
+    border-top: 1px solid #d0d0d0;
+    z-index: 900;
+    box-shadow: 0 -2px 8px rgba(0,0,0,0.06);
+}
+.tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    cursor: pointer;
+    padding: 0 10px 0 0;
+    min-width: 0;
+    gap: 2px;
+}
+.tab-item:last-child { padding-right: 0; }
+.tab-active-inner { display: flex; align-items: center; gap: 12px; }
+.tab-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    padding: 3px 0 0;
+}
+.tab-item.active .tab-label { font-weight: 700; color: #111; }
+.tab-count { font-size: 14px; font-weight: 400; color: #aaa; }
+.sub-nav { display: flex; flex-direction: column; gap: 2px; }
+.pip-row { display: flex; gap: 2px; }
+.pip {
+    width: 27px;
+    height: 3px;
+    border-radius: 2px;
+    background: #d8d8d8;
+    transition: background 0.15s;
+}
+.pip.pip-filled { background: #3B6D11; }
+.pip.pip-active { background: #185FA5; }
+.sub-btn-row { display: flex; gap: 2px; }
+.sub-btn {
+    width: 27px;
+    height: 30px;
+    font-size: 14px;
+    font-weight: 400;
+    border: 0.5px solid transparent;
+    border-radius: 3px;
+    background: transparent;
+    cursor: pointer;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    line-height: 1;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.sub-btn:hover { background: #eee; color: #111; }
+.sub-btn.sub-active { border: 1.5px solid #185FA5; color: #185FA5; font-weight: 600; }
+.sub-btn.sub-filled { color: #222; }
 
-/* ───── Base ───── */
-/* body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  line-height: 1.6;
-  max-width: 860px;
-  margin: 2rem auto;
-  padding: 0 1.5rem;
-  color: #222;
-  background: #fafafa;
-} */
- 
-/* ───── Fill input ───── */
+/* ═══════════════════════════════════════════════════
+   QUESTION INPUT TYPES
+   ═══════════════════════════════════════════════════ */
 .fill-input {
-  display: inline-block;
-  border-radius: 4px;
-  border: 2px solid #9c9c9c;
-  background: transparent;
-  font-size: 1em;
-  padding: 2px 6px;
-  margin: 2px 6px;
-  min-width: 120px;
-  outline: none;
-  color: #111;
+    display: inline-block;
+    border-radius: 4px;
+    border: 2px solid #9c9c9c;
+    background: transparent;
+    font-size: 1em;
+    padding: 2px 6px;
+    margin: 2px 6px;
+    min-width: 120px;
+    outline: none;
+    color: #111;
 }
 .fill-input:focus { border: 2px solid #0077cc; }
- 
-/* ───── MCH Q / M ───── */
-.mchq, .mchm-list {
-  list-style: none;
-  padding: .2rem 0;
-  margin: .6rem 0;
-}
-.mchq-option, .mchm-option {
-  margin: .35rem 0;
-  width: fit-content;
-  height: 30px;
-}
+
+.mchq, .mchm-list { list-style: none; padding: .2rem 0; margin: .6rem 0; }
+.mchq-option, .mchm-option { margin: .35rem 0; width: fit-content; height: 30px; }
 .mchq-option label,
-.mchm-option label {
-  display: inline-flex;
-  align-items: baseline;
-  padding-left: .2rem;
-  gap: .5rem;
-  cursor: pointer;
-}
-
-.mchq-option :hover{
-  background-color: #c6e7ff;
-  background-size: 40px 200px;
-}
-
-.option-key {
-  font-weight: 700;
-  min-width: 1.6em;
-}
-.mchm { margin: .6rem 0;}
+.mchm-option label { display: inline-flex; align-items: baseline; padding-left: .2rem; gap: .5rem; cursor: pointer; }
+.mchq-option:hover { background-color: #c6e7ff; }
+.option-key { font-weight: 700; min-width: 1.6em; }
+.mchm { margin: .6rem 0; }
 .mchm-ids { margin-bottom: .4rem; }
 .qid-badge {
-  display: inline-block;
-  background: #0077cc;
-  color: #fff;
-  border-radius: 4px;
-  padding: 1px 7px;
-  font-size: .75em;
-  margin-right: 4px;
+    display: inline-block;
+    background: #0077cc;
+    color: #fff;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: .75em;
+    margin-right: 4px;
 }
- 
-/* ───── Match ───── */
-.match-widget {
-  display: flex;
-  gap: 2rem;
-  margin: 1rem 20px;
-  align-items: flex-start;
-}
+
+.match-widget { display: flex; gap: 2rem; margin: 1rem 20px; align-items: flex-start; }
 .match-left  { flex: 1; display: flex; align-items: baseline; flex-direction: column; gap: .7rem; }
 .match-right { flex: 1; display: flex; flex-direction: column; align-items: baseline; gap: .6rem; }
- 
-.match-left-row {
-  display: flex;
-  align-items: center;
-  gap: .8rem;
-}
+.match-left-row { display: flex; align-items: center; gap: .8rem; }
 .match-prompt { flex: 1; }
- 
 .match-drop-zone {
-  min-width: 110px;
-  min-height: 36px;
-  border: 2px dashed #aaa;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 8px;
-  background: #f4f4f4;
-  transition: background .15s, border-color .15s;
-  position: relative;
+    min-width: 110px;
+    min-height: 36px;
+    border: 2px dashed #aaa;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    background: #f4f4f4;
+    transition: background .15s, border-color .15s;
+    position: relative;
 }
-.match-drop-zone.drag-over {
-  background: #e0f0ff;
-  border-color: #0077cc;
-}
-.match-drop-zone.filled { border-style: solid; background: #eaf7ea; }
+.match-drop-zone.drag-over { background: #e0f0ff; border-color: #0077cc; }
+.match-drop-zone.filled    { border-style: solid; background: #eaf7ea; }
 .drop-hint { color: #bbb; font-size: .85em; pointer-events: none; }
- 
 .match-chip {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: 6px 12px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  cursor: grab;
-  user-select: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,.1);
-  transition: opacity .15s, transform .1s;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    padding: 6px 12px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: grab;
+    user-select: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    transition: opacity .15s, transform .1s;
 }
 .match-chip:active { cursor: grabbing; }
 .match-chip.dragging { opacity: .45; transform: scale(.97); }
 .chip-key {
-  font-weight: 700;
-  background: #0077cc;
-  color: #fff;
-  border-radius: 3px;
-  padding: 1px 6px;
-  font-size: .8em;
+    font-weight: 700;
+    background: #0077cc;
+    color: #fff;
+    border-radius: 3px;
+    padding: 1px 6px;
+    font-size: .8em;
 }
- 
-/* ───── Box ───── */
+
 .text-box {
-  display: inline-block;
-  border: 2px solid #444;
-  border-radius: 5px;
-  padding: .5rem 1rem;
-  margin: .5rem 0;
-  background: #fff;
-  max-width: 100%;
-  white-space: pre-wrap;
+    display: inline-block;
+    border: 2px solid #444;
+    border-radius: 5px;
+    padding: .5rem 1rem;
+    margin: .5rem 0;
+    background: #fff;
+    max-width: 100%;
+    white-space: pre-wrap;
 }
- 
-/* ───── Guide ───── */
+
 .guide-box {
-  border-left: 4px solid #0077cc;
-  background: #f0f7ff;
-  border-radius: 6px;
-  padding: .75rem 1.2rem;
-  margin: .8rem 0;
+    border-left: 4px solid #0077cc;
+    background: #f0f7ff;
+    border-radius: 6px;
+    padding: .75rem 1.2rem;
+    margin: .8rem 0;
 }
-.guide-title {
-  font-weight: 700;
-  font-size: 1.05em;
-  margin-bottom: .35rem;
-  color: #0055aa;
-}
-.guide-body { color: #333; }
+.guide-title { font-weight: 700; font-size: 1.05em; margin-bottom: .35rem; color: #0055aa; }
+.guide-body  { color: #333; }
 
-
-/* ───── Drop (dropdown matching) ───── */
-.drop-widget {
-  margin: .8rem 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: .5rem;
-}
-.drop-row {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  flex-wrap: wrap;
-}
-.drop-qnum {
-  font-weight: 700;
-  min-width: 1.6em;
-  color: #444;
-}
-.drop-text {
-  flex: 1;
-  min-width: 140px;
-}
+.drop-widget { margin: .8rem 0; display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; }
+.drop-row    { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.drop-qnum   { font-weight: 700; min-width: 1.6em; color: #444; }
+.drop-text   { flex: 1; min-width: 140px; }
 .drop-select {
-  appearance: auto;
-  border: 2px solid #9c9c9c;
-  border-radius: 5px;
-  padding: 4px 8px;
-  font-size: 1em;
-  background: #fff;
-  cursor: pointer;
-  outline: none;
-  transition: border-color .15s;
+    appearance: auto;
+    border: 2px solid #9c9c9c;
+    border-radius: 5px;
+    padding: 4px 8px;
+    font-size: 1em;
+    background: #fff;
+    cursor: pointer;
+    outline: none;
+    transition: border-color .15s;
 }
 .drop-select:focus { border-color: #0077cc; }
 
-/* ───── Image insert ───── */
-.img-block {
-  display: block;
-  margin: .8rem 0;
-  line-height: 0;          /* removes phantom gap below inline img */
-}
-.img-insert {
-  max-width: 50%;         /* never overflow the container */
-  height: auto;            /* preserve aspect ratio */
-  display: block;
-  border-radius: 4px;
-}
-
-
+.img-block  { display: block; margin: .8rem 0 2rem; line-height: 0; }
+.img-insert { max-width: 50%; height: auto; display: block; border-radius: 4px; }
 
 </style>
 
-<!-- START SCREEN -->
+<!-- ═══════════════════════════════════════════════
+     START OVERLAY
+     ═══════════════════════════════════════════════ -->
 <div id="start-overlay">
     <h2>IELTS Listening Test</h2>
     <p>You will listen to 4 audio recordings and answer questions based on them. The timer will start as soon as you click the "Start Test" button. You cannot pause or replay the audio, so make sure you're ready before you begin.</p>
     <button id="start-btn">Start Test</button>
 </div>
 
+<!-- ═══════════════════════════════════════════════
+     MAIN WRAPPER  [test-content | notes-sidebar]
+     ═══════════════════════════════════════════════ -->
+<div id="main-wrapper">
 
+    <!-- TEST CONTENT -->
+    <div id="test-content">
 
-<!-- MAIN CONTENT -->
-<div id="test-content" class="listening-text-container">
+        <audio id="audio-player">
+            <source src="{{ test.audio_file.url }}" type="audio/mpeg">
+        </audio>
 
-    <!-- AUDIO -->
-    <audio id="audio-player">
-        <source src="{{ test.audio_file.url }}" type="audio/mpeg">
-    </audio>
-
-    <!-- SECTIONS -->
-    <div class="section" id="section1">
-        <div class="instruction">
-            <h2 id="section-instructions-title">Part 1</h2>
-            <p>Listen and answer the questions 1 - 10.</p>
+        <div class="section" id="section1">
+            <div class="instruction">
+                <h2>Part 1</h2>
+                <p>Listen and answer the questions 1 – 10.</p>
+            </div>
+            <p>{{ section1_html|safe }}</p>
         </div>
-        <p>{{ section1_html|safe }}</p>
+
+        <div class="section" id="section2">
+            <div class="instruction">
+                <h2>Part 2</h2>
+                <p>Listen and answer the questions 11 – 20.</p>
+            </div>
+            <p>{{ section2_html|safe }}</p>
+        </div>
+
+        <div class="section" id="section3">
+            <div class="instruction">
+                <h2>Part 3</h2>
+                <p>Listen and answer the questions 21 – 30.</p>
+            </div>
+            <p>{{ section3_html|safe }}</p>
+        </div>
+
+        <div class="section" id="section4">
+            <div class="instruction">
+                <h2>Part 4</h2>
+                <p>Listen and answer the questions 31 – 40.</p>
+            </div>
+            <p>{{ section4_html|safe }}</p>
+        </div>
+
+    </div><!-- /test-content -->
+
+    <!-- NOTES SIDEBAR (in-flow — pushes test content) -->
+    <div id="notes-sidebar">
+        <div id="notes-header">
+            <span>Notes</span>
+            <button onclick="toggleNotesSidebar()">✕</button>
+        </div>
+        <div id="notes-list"></div>
     </div>
 
-    <div class="section" id="section2">
-        <div class="instruction">
-            <h2 id="section-instructions-title">Part 2</h2>
-            <p>Listen and answer the questions 11 - 20.</p>
-        </div>
-        <p>{{ section2_html|safe }}</p>
-    </div>
+</div><!-- /main-wrapper -->
 
-    <div class="section" id="section3">
-        <div class="instruction">
-            <h2 id="section-instructions-title">Part 3</h2>
-            <p>Listen and answer the questions 21 - 30.</p>
-        </div>
-        <p>{{ section3_html|safe }}</p>
-    </div>
-
-    <div class="section" id="section4">
-        <div class="instruction">
-            <h2 id="section-instructions-title">Part 4</h2>
-            <p>Listen and answer the questions 31 - 40.</p>
-        </div>
-        <p>{{ section4_html|safe }}</p>
-    </div>
+<!-- SELECTION POPUP -->
+<div id="selection-popup" style="display:none;">
+    <button onclick="doHighlight()">
+        <!-- ADD HIGHLIGHT ICON HERE -->
+        <span>Highlight</span>
+    </button>
+    <button onclick="doNote()">
+        <!-- ADD NOTE ICON HERE -->
+        <span>Note</span>
+    </button>
 </div>
 
-<div id="section-tabs">
-    <button onclick="showSection(1)" id="tab1">Part 1</button>
-    <button onclick="showSection(2)" id="tab2">Part 2</button>
-    <button onclick="showSection(3)" id="tab3">Part 3</button>
-    <button onclick="showSection(4)" id="tab4">Part 4</button>
+<!-- QUESTION NAV BUTTONS — change `bottom` and `right` below to reposition -->
+<div id="question-nav-btns">
+    <button id="btn-prev-q" onclick="navigateQuestion(-1)" title="Previous question">
+        <img src="{% static 'core/icons/arrow-right.svg' %}" style="transform: rotate(180deg);">
+    </button>
+    <button id="btn-next-q" onclick="navigateQuestion(1)" title="Next question">
+        <img src="{% static 'core/icons/arrow-right.svg' %}">
+    </button>
 </div>
+
+<!-- BOTTOM TAB BAR (populated by renderTabBar()) -->
+<div id="section-tabs"></div>
+
 
 <script>
-const startBtn = document.getElementById("start-btn");
-const overlay = document.getElementById("start-overlay");
-const content = document.getElementById("test-content");
-const audio = document.getElementById("audio-player");
-const timerEl = document.getElementById("timer");
-const navbarCol = document.getElementById("navbar");
-let timerInterval;
-let totalSeconds;
+/* ═══════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════ */
+const PARTS    = 4;
+const PER_PART = 10;
+let activeTab  = 1;
+let activeSub  = 1;
 
-function parseTime(timeStr) {
-    const [mins, secs] = timeStr.split(":").map(Number);
-    return mins * 60 + secs;
+const partRange = p => ({ start: (p - 1) * PER_PART + 1, end: p * PER_PART });
+
+/* ═══════════════════════════════════════════════════
+   QUESTION STATUS DETECTION
+   ═══════════════════════════════════════════════════ */
+function isQuestionFilled(n) {
+    const qid = 'question' + n;
+    const el  = document.getElementById(qid);
+
+    if (!el) {
+        // mchm: question id lives in data-question-ids of a checkbox
+        let found = false;
+        document.querySelectorAll('.mchm').forEach(group => {
+            const ids  = (group.dataset.questionIds || '').trim().split(/\s+/);
+            const idx  = ids.indexOf(qid);
+            if (idx === -1) return;
+            const checked = [...group.querySelectorAll('input[type="checkbox"]:checked')];
+            if (checked[idx]) found = true;
+        });
+        return found;
+    }
+
+    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') return el.value.trim() !== '';
+    if (el.tagName === 'SELECT')                              return el.value !== '';
+    if (el.classList.contains('mchq'))                        return !!el.querySelector('input[type="radio"]:checked');
+    if (el.classList.contains('match-drop-zone')) {
+        const h = el.querySelector('input[type="hidden"]');
+        return !!(h && h.value);
+    }
+    return false;
 }
 
-function startTimer() {
-    // Get time from HTML
-    totalSeconds = parseTime(timerEl.innerText);
-
-    timerInterval = setInterval(() => {
-        if (totalSeconds <= 0) {
-            clearInterval(timerInterval);
-            timerEl.innerText = "00:00";
-            submitAnswers();
-            return;
-        }
-
-        totalSeconds--;
-
-        let mins = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-        let secs = String(totalSeconds % 60).padStart(2, '0');
-
-        
-        if (totalSeconds <= 60) {
-            timerEl.innerText = `${secs} seconds remaining.`;
-            navbarCol.style.backgroundColor = "#e3b6b9";
-        }
-        else if (totalSeconds > 300) {
-            timerEl.innerText = `${mins} minutes remaining.`;
-        }
-        else if (totalSeconds <= 300) {
-            timerEl.innerText = `${mins} minutes ${secs} seconds remaining.`;
-        }
-    }, 1000);
+function countFilled(part) {
+    const { start, end } = partRange(part);
+    let c = 0;
+    for (let i = start; i <= end; i++) if (isQuestionFilled(i)) c++;
+    return c;
 }
 
-/* 📄 SECTION CONTROL BASED ON AUDIO TIME */
+function getQuestionStatus(n) {
+    if (n === activeSub)     return 'active';
+    if (isQuestionFilled(n)) return 'filled';
+    return 'empty';
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB BAR RENDERING
+   ═══════════════════════════════════════════════════ */
+function renderTabBar() {
+    const bar = document.getElementById('section-tabs');
+    bar.innerHTML = '';
+
+    for (let p = 1; p <= PARTS; p++) {
+        const { start, end } = partRange(p);
+        const isActive = p === activeTab;
+        const item = document.createElement('div');
+        item.className = 'tab-item' + (isActive ? ' active' : '');
+
+        if (isActive) {
+            let pipHtml = '<div class="pip-row">';
+            let btnHtml = '<div class="sub-btn-row">';
+            for (let i = start; i <= end; i++) {
+                const st  = getQuestionStatus(i);
+                const pip = st === 'active' ? 'pip pip-active' : st === 'filled' ? 'pip pip-filled' : 'pip';
+                const btn = st === 'active' ? 'sub-btn sub-active' : st === 'filled' ? 'sub-btn sub-filled' : 'sub-btn';
+                pipHtml += `<div class="${pip}"></div>`;
+                btnHtml += `<button class="${btn}" data-q="${i}">${i}</button>`;
+            }
+            pipHtml += '</div>';
+            btnHtml += '</div>';
+
+            item.innerHTML = `
+                <div class="tab-active-inner">
+                    <div class="tab-label">Part ${p}</div>
+                    <div class="sub-nav">${pipHtml}${btnHtml}</div>
+                </div>`;
+        } else {
+            const filled = countFilled(p);
+            item.innerHTML = `<div class="tab-label">Part ${p} <span class="tab-count">${filled} of ${PER_PART}</span></div>`;
+        }
+
+        item.addEventListener('click', function (e) {
+            const btn = e.target.closest('[data-q]');
+            if (btn) { goToQuestion(parseInt(btn.dataset.q)); return; }
+            if (p !== activeTab) { activeTab = p; activeSub = partRange(p).start; showSection(p); }
+        });
+
+        bar.appendChild(item);
+    }
+
+    // Sync tab bar height → CSS variable so #main-wrapper stays above it
+    const barH = bar.offsetHeight;
+    document.documentElement.style.setProperty('--tabbar-h', barH + 'px');
+}
+
+/* ═══════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════ */
+function goToQuestion(n) {
+    activeSub = n;
+    renderTabBar();
+    const el = document.getElementById('question' + n);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') el.focus();
+}
+
+function navigateQuestion(direction) {
+    const { start, end } = partRange(activeTab);
+    const next = activeSub + direction;
+    if (next < start || next > end) return;   // stay within current part
+    goToQuestion(next);
+}
+
+/* ═══════════════════════════════════════════════════
+   SECTION VISIBILITY
+   ═══════════════════════════════════════════════════ */
 function showSection(num) {
-    // Hide all sections
     for (let i = 1; i <= 4; i++) {
-        document.getElementById("section" + i).style.display = "none";
-        document.getElementById("tab" + i).classList.remove("active");
+        const s = document.getElementById('section' + i);
+        if (s) s.style.display = 'none';
     }
-
-    // Show selected
-    document.getElementById("section" + num).style.display = "block";
-    document.getElementById("tab" + num).classList.add("active");
+    const target = document.getElementById('section' + num);
+    if (target) target.style.display = 'block';
+    activeTab = num;
+    // Scroll test content back to top when switching sections
+    document.getElementById('test-content').scrollTop = 0;
+    renderTabBar();
 }
 
-/* Default section when test starts */
-startBtn.addEventListener("click", () => {
-    overlay.style.display = "none";
-    content.style.display = "block";
-
-    audio.play();
-    startTimer();
-
-    showSection(1); // 👈 show first section by default
-});
-
-/* 🔒 DISABLE SEEK + PAUSE */
-audio.addEventListener("seeking", () => {
-    audio.currentTime = audio.currentTime; // block seeking
-});
-
-audio.addEventListener("pause", () => {
-    audio.play(); // prevent pause
-});
-
-/* 🚫 PREVENT REFRESH */
-window.onbeforeunload = function () {
-    return "Test is in progress!";
-};
-
-/* ═══════════════════════════════════
-   Drag-and-Drop for [match] blocks
-   ═══════════════════════════════════ */
-let _draggedChip = null;
- 
-function matchDragStart(e) {
-  _draggedChip = e.currentTarget;
-  _draggedChip.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/plain', _draggedChip.dataset.value);
-}
- 
-function matchDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  e.currentTarget.classList.add('drag-over');
-}
- 
-function matchDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
- 
-function matchDrop(e) {
-  e.preventDefault();
-  const zone = e.currentTarget;
-  zone.classList.remove('drag-over');
- 
-  if (!_draggedChip) return;
- 
-  const value = _draggedChip.dataset.value;
- 
-  // If the zone already has a chip, send it back to the palette
-  const existing = zone.querySelector('.match-chip');
-  if (existing) {
-    const palette = document.querySelector('.match-right');
-    if (palette) palette.appendChild(existing);
-    existing.setAttribute('draggable', true);
-  }
- 
-  // Move the dragged chip into the zone
-  zone.appendChild(_draggedChip);
-  _draggedChip.classList.remove('dragging');
-  zone.classList.add('filled');
-  zone.querySelector('.drop-hint') && (zone.querySelector('.drop-hint').style.display = 'none');
- 
-  // Store the value in a hidden input so it can be submitted
-  let hidden = zone.querySelector('input[type=hidden]');
-  if (!hidden) {
-    hidden = document.createElement('input');
-    hidden.type  = 'hidden';
-    hidden.name  = zone.id;
-    zone.appendChild(hidden);
-  }
-  hidden.value = value;
- 
-  _draggedChip = null;
-}
- 
-document.addEventListener('dragend', () => {
-  if (_draggedChip) {
-    _draggedChip.classList.remove('dragging');
-    _draggedChip = null;
-  }
-});
-
-
-document.addEventListener('change', function(e) {
-  const checkbox = e.target;
-  if (!checkbox.matches('.mchm-option input[type="checkbox"]')) return;
-
-  const group = checkbox.closest('.mchm');
-  const allCheckboxes = group.querySelectorAll('input[type="checkbox"]');
-  const questionIds = checkbox.dataset.questionIds.trim().split(/\s+/);
-  const maxAllowed = questionIds.length;
-  const checkedCount = [...allCheckboxes].filter(cb => cb.checked).length;
-
-  allCheckboxes.forEach(cb => {
-    if (!cb.checked) {
-      cb.disabled = checkedCount >= maxAllowed;
-    }
-  });
-});
-
-/* SUBMIT AND FETCH SECTION */
-
-function collectAnswers() {
-    const testId = document.getElementById("test_id").innerText
-    const answers = {
-        'id' : testId,
-    };
-
-    document.querySelectorAll('.fill-input').forEach(input => {
-        answers[input.id] = input.value.trim();
-    });
-
-    document.querySelectorAll('.mchq').forEach(group => {
-        const selected = group.querySelector('input[type="radio"]:checked');
-        answers[group.id] = selected ? selected.value : null;
-    });
-
-    document.querySelectorAll('.mchm').forEach(group => {
-        const ids = group.dataset.questionIds.trim().split(/\s+/);
-        const checked = [...group.querySelectorAll('input[type="checkbox"]:checked')].map(cb => cb.value);
-        ids.forEach((qid, i) => {
-            answers[qid] = checked[i] ?? null;
+/* ═══════════════════════════════════════════════════
+   INPUT LISTENERS → refresh pip status
+   ═══════════════════════════════════════════════════ */
+function attachInputListeners() {
+    document.querySelectorAll('.fill-input, .drop-select').forEach(el => {
+        el.addEventListener('input',  renderTabBar);
+        el.addEventListener('change', renderTabBar);
+        el.addEventListener('focus', () => {
+            const num = parseInt((el.id || '').replace('question', ''));
+            if (!isNaN(num)) { activeSub = num; renderTabBar(); }
         });
     });
 
-    document.querySelectorAll('.match-drop-zone').forEach(zone => {
-        const hidden = zone.querySelector('input[type="hidden"]');
-        answers[zone.id] = hidden ? hidden.value : null;
+    document.querySelectorAll('.mchq input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', renderTabBar);
+        radio.addEventListener('focus', () => {
+            const group = radio.closest('.mchq');
+            if (group && group.id) {
+                const num = parseInt(group.id.replace('question', ''));
+                if (!isNaN(num)) { activeSub = num; renderTabBar(); }
+            }
+        });
     });
 
-    document.querySelectorAll('.drop-select').forEach(select => {
-        answers[select.id] = select.value;
+    document.querySelectorAll('.mchm input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', renderTabBar);
     });
+
+    // mchm max-selection enforcement
+    document.addEventListener('change', function (e) {
+        const cb = e.target;
+        if (!cb.matches('.mchm-option input[type="checkbox"]')) return;
+        const group      = cb.closest('.mchm');
+        const allCBs     = group.querySelectorAll('input[type="checkbox"]');
+        const maxAllowed = (cb.dataset.questionIds || '').trim().split(/\s+/).length;
+        const checked    = [...allCBs].filter(c => c.checked).length;
+        allCBs.forEach(c => { if (!c.checked) c.disabled = checked >= maxAllowed; });
+    });
+}
+
+/* ═══════════════════════════════════════════════════
+   TIMER
+   ═══════════════════════════════════════════════════ */
+const timerEl = document.getElementById('timer');
+let timerInterval, totalSeconds;
+
+function parseTime(s) {
+    const [m, sec] = s.split(':').map(Number);
+    return m * 60 + sec;
+}
+
+function startTimer() {
+    totalSeconds = parseTime(timerEl.innerText);
+    timerInterval = setInterval(() => {
+        if (totalSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerEl.innerText = '00:00';
+            submitAnswers();
+            return;
+        }
+        totalSeconds--;
+        const mins   = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+        const secs   = String(totalSeconds % 60).padStart(2, '0');
+        const navbar = document.getElementById('navbar');
+
+        if      (totalSeconds <= 60)  { timerEl.innerText = `${secs} seconds remaining.`; if (navbar) navbar.style.backgroundColor = '#e3b6b9'; }
+        else if (totalSeconds > 300)  { timerEl.innerText = `${mins} minutes remaining.`; }
+        else                          { timerEl.innerText = `${mins} minutes ${secs} seconds remaining.`; }
+    }, 1000);
+}
+
+/* ═══════════════════════════════════════════════════
+   START BUTTON
+   ═══════════════════════════════════════════════════ */
+document.getElementById('start-btn').addEventListener('click', () => {
+    document.getElementById('start-overlay').style.display = 'none';
+    document.getElementById('main-wrapper').style.display  = 'flex';
+    document.getElementById('question-nav-btns').style.display = 'flex';
+    document.getElementById('audio-player').play();
+    startTimer();
+    attachInputListeners();
+    enableHighlight();
+    showSection(1);
+});
+
+/* ═══════════════════════════════════════════════════
+   AUDIO CONTROLS
+   ═══════════════════════════════════════════════════ */
+const audio = document.getElementById('audio-player');
+audio.addEventListener('seeking', () => { audio.currentTime = audio.currentTime; });
+audio.addEventListener('pause',   () => { audio.play(); });
+window.onbeforeunload = () => 'Test is in progress!';
+
+/* ═══════════════════════════════════════════════════
+   DRAG-AND-DROP (match blocks)
+   ═══════════════════════════════════════════════════ */
+let _draggedChip = null;
+
+function matchDragStart(e) {
+    _draggedChip = e.currentTarget;
+    _draggedChip.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', _draggedChip.dataset.value);
+}
+function matchDragOver(e)  { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; e.currentTarget.classList.add('drag-over'); }
+function matchDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function matchDrop(e) {
+    e.preventDefault();
+    const zone = e.currentTarget;
+    zone.classList.remove('drag-over');
+    if (!_draggedChip) return;
+
+    const existing = zone.querySelector('.match-chip');
+    if (existing) { document.querySelector('.match-right')?.appendChild(existing); existing.setAttribute('draggable', true); }
+
+    zone.appendChild(_draggedChip);
+    _draggedChip.classList.remove('dragging');
+    zone.classList.add('filled');
+    const hint = zone.querySelector('.drop-hint');
+    if (hint) hint.style.display = 'none';
+
+    let hidden = zone.querySelector('input[type=hidden]');
+    if (!hidden) { hidden = document.createElement('input'); hidden.type = 'hidden'; hidden.name = zone.id; zone.appendChild(hidden); }
+    hidden.value = _draggedChip.dataset.value;
+    _draggedChip  = null;
+    renderTabBar();
+}
+document.addEventListener('dragend', () => { if (_draggedChip) { _draggedChip.classList.remove('dragging'); _draggedChip = null; } });
+
+/* ═══════════════════════════════════════════════════
+   HIGHLIGHT & NOTES
+   ═══════════════════════════════════════════════════ */
+let _savedRange = null;
+let _savedText  = '';
+
+function enableHighlight() {
+    document.getElementById('test-content').addEventListener('mouseup', () => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed) { hidePopup(); return; }
+        const text = sel.toString().trim();
+        if (!text) { hidePopup(); return; }
+
+        _savedRange = sel.getRangeAt(0).cloneRange();
+        _savedText  = text;
+
+        const rect  = sel.getRangeAt(0).getBoundingClientRect();
+        const popup = document.getElementById('selection-popup');
+        popup.style.display = 'flex';
+        popup.style.top     = (rect.top + window.scrollY - popup.offsetHeight - 10) + 'px';
+        popup.style.left    = (rect.left + rect.width / 2) + 'px';
+    });
+
+    document.addEventListener('mousedown', (e) => {
+        if (!document.getElementById('selection-popup').contains(e.target)) hidePopup();
+    });
+}
+
+function hidePopup() {
+    document.getElementById('selection-popup').style.display = 'none';
+    _savedRange = null;
+    _savedText  = '';
+}
+
+function doHighlight() {
+    if (!_savedRange) return;
+    const span = document.createElement('span');
+    span.className = 'highlighted';
+    span.addEventListener('click', () => {
+        const p = span.parentNode;
+        while (span.firstChild) p.insertBefore(span.firstChild, span);
+        p.removeChild(span);
+    });
+    try { _savedRange.surroundContents(span); } catch(e) {}
+    window.getSelection().removeAllRanges();
+    hidePopup();
+}
+
+function doNote() {
+    if (!_savedRange) return;
+    const noteId = 'note-' + Date.now();
+    const span   = document.createElement('span');
+    span.className     = 'highlighted-note';
+    span.dataset.noteId = noteId;
+    try { _savedRange.surroundContents(span); } catch(e) { hidePopup(); return; }
+
+    const quote = _savedText;
+    window.getSelection().removeAllRanges();
+    hidePopup();
+    document.getElementById('notes-sidebar').classList.add('open');
+    openNoteInput(noteId, quote, span);
+}
+
+function openNoteInput(noteId, quote, spanEl) {
+    const card = document.createElement('div');
+    card.className      = 'note-card';
+    card.dataset.noteId = noteId;
+    card.innerHTML = `
+        <div class="note-quote">${quote.slice(0, 100)}${quote.length > 100 ? '…' : ''}</div>
+        <textarea class="note-input-area" placeholder="Type your note here..."></textarea>
+        <button class="note-save-btn">Save</button>
+    `;
+    card.querySelector('.note-save-btn').addEventListener('click', () => {
+        const text = card.querySelector('.note-input-area').value.trim();
+        if (!text) return;
+        finaliseNoteCard(card, noteId, quote, text, spanEl);
+    });
+    document.getElementById('notes-list').prepend(card);
+    card.querySelector('.note-input-area').focus();
+}
+
+function finaliseNoteCard(card, noteId, quote, text, spanEl) {
+    card.innerHTML = `
+        <button class="note-delete">✕</button>
+        <div class="note-quote">${quote.slice(0, 100)}${quote.length > 100 ? '…' : ''}</div>
+        <div class="note-text">${text}</div>
+    `;
+
+    // Delete card AND remove cyan highlight
+    card.querySelector('.note-delete').addEventListener('click', () => {
+        if (spanEl && spanEl.parentNode) {
+            const p = spanEl.parentNode;
+            while (spanEl.firstChild) p.insertBefore(spanEl.firstChild, spanEl);
+            p.removeChild(spanEl);
+        }
+        card.remove();
+    });
+
+    // Click card → switch section if needed, then scroll to highlight
+    card.addEventListener('click', (e) => {
+        if (e.target.classList.contains('note-delete')) return;
+        if (!spanEl) return;
+        const parentSection = spanEl.closest('.section');
+        if (parentSection) {
+            const sectionNum = parseInt(parentSection.id.replace('section', ''));
+            if (sectionNum !== activeTab) showSection(sectionNum);
+        }
+        setTimeout(() => {
+            spanEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            spanEl.style.outline = '2px solid #00aaaa';
+            setTimeout(() => { spanEl.style.outline = ''; }, 1200);
+        }, 50);
+    });
+}
+
+function toggleNotesSidebar() {
+    document.getElementById('notes-sidebar').classList.toggle('open');
+}
+
+/* ═══════════════════════════════════════════════════
+   SUBMIT
+   ═══════════════════════════════════════════════════ */
+function collectAnswers() {
+    const answers = { id: document.getElementById('test_id').innerText };
+
+    document.querySelectorAll('.fill-input').forEach(el => { answers[el.id] = el.value.trim(); });
+    document.querySelectorAll('.mchq').forEach(g => {
+        const sel = g.querySelector('input[type="radio"]:checked');
+        answers[g.id] = sel ? sel.value : null;
+    });
+    document.querySelectorAll('.mchm').forEach(g => {
+        const ids     = (g.dataset.questionIds || '').trim().split(/\s+/);
+        const checked = [...g.querySelectorAll('input[type="checkbox"]:checked')].map(c => c.value);
+        ids.forEach((qid, i) => { answers[qid] = checked[i] ?? null; });
+    });
+    document.querySelectorAll('.match-drop-zone').forEach(z => {
+        const h = z.querySelector('input[type="hidden"]');
+        answers[z.id] = h ? h.value : null;
+    });
+    document.querySelectorAll('.drop-select').forEach(s => { answers[s.id] = s.value; });
 
     return answers;
 }
 
 async function submitAnswers() {
     try {
-        const response = await fetch('/api/submit/listening/', {
+        const res = await fetch('/api/submit/listening/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),
-            },
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
             body: JSON.stringify(collectAnswers()),
         });
-
-        const result = await response.json();
-        console.log('Submitted:', result);
-
-        window.onbeforeunload = null; // allow navigation after submit
-        window.location.href = '/main/'; // redirect to results page
+        await res.json();
+        window.onbeforeunload = null;
+        window.location.href  = '/main/';
     } catch (err) {
         console.error('Submission failed:', err);
         window.location.href = '/main/';
@@ -654,13 +1029,9 @@ async function submitAnswers() {
 }
 
 function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
+    const parts = (`; ${document.cookie}`).split(`; ${name}=`);
     if (parts.length === 2) return parts.pop().split(';').shift();
 }
-
-
-
 </script>
 
 {% endblock %}

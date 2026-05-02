@@ -14,9 +14,6 @@ def home(request):
     exam_sessions = ExamSession.objects.filter(is_open=True)
     return render(request, 'core/home.html', {'exam_sessions' : exam_sessions})
 
-
-# pass the exam session here to the main page
-
 def main(request):
     if request.method == "POST":
         unique_session = str(uuid.uuid4()).replace('-', '')[:16] 
