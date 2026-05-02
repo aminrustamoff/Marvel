@@ -482,10 +482,23 @@ if (ta2) injectWordCounter(ta2, 250);
 /* ── 6. SUBMIT ────────────────────────────────────── */
 
 async function submitAnswers() {
+  const ta1 = document.getElementById('answer1');
+  const ta2 = document.getElementById('answer2');
+
   const payload = {
-    'id' : document.getElementById('test_id').innerText ?? '',
-    'report': document.getElementById('answer1')?.value ?? '',
-    'essay': document.getElementById('answer2')?.value ?? '',
+    id: document.getElementById('test_id').innerText ?? '',
+
+    report: ta1?.value ?? '',
+    word_count_report:
+      ta1.value.trim() === ''
+        ? 0
+        : ta1.value.trim().split(/\s+/).length,
+
+    essay: ta2?.value ?? '',
+    word_count_essay:
+      ta2.value.trim() === ''
+        ? 0
+        : ta2.value.trim().split(/\s+/).length,
   };
 
   try {
@@ -499,16 +512,16 @@ async function submitAnswers() {
     });
 
     const result = await response.json();
+
     console.log('Writing submitted:', result);
 
     window.onbeforeunload = null;
-    window.location.href = '/main/';  // ← absolute path (fixes the relative-URL bug)
+    window.location.href = '/main/';
   } catch (err) {
     console.error('Submission error:', err);
     window.location.href = '/main/';
   }
 }
-
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts  = value.split(`; ${name}=`);

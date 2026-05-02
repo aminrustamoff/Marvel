@@ -175,7 +175,7 @@ class ExamSession(models.Model):
 class ResultsTable(models.Model):
 
     exam_session = models.ForeignKey(           # ← new
-        'ExamSession',
+        ExamSession,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='results'
@@ -219,3 +219,5 @@ class WritingResults(models.Model):
     test_id = models.CharField(max_length=50)
     task1_text = models.TextField()
     task2_text = models.TextField()
+    task1_word_count = models.CharField()
+    task2_word_count = models.CharField()

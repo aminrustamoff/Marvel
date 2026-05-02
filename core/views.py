@@ -22,9 +22,17 @@ def main(request):
         unique_session = str(uuid.uuid4()).replace('-', '')[:16] 
         user_name = request.POST.get('username', '').strip() or 'Anonymous'
 
+        exam_session_id = request.POST.get('exam_session')
+
+        exam_session = get_object_or_404(
+            ExamSession,
+            id=exam_session_id
+        )
+
         new_entry = ResultsTable.objects.create(
             session_id=unique_session,
             username=user_name,
+            exam_session = exam_session,
         )
 
         request.session['current_exam_id'] = new_entry.session_id
@@ -41,6 +49,7 @@ def main(request):
         try:
             session = ResultsTable.objects.get(session_id=session_id)
             context['username'] = session.username
+            context['exam_session'] = session.exam_session
             context['listening_done'] = ListeningResults.objects.filter(session=session).exists()
             context['reading_done'] = ReadingResults.objects.filter(session=session).exists()
             context['writing_done'] = WritingResults.objects.filter(session=session).exists()
@@ -229,8 +238,10 @@ class SubmitWritingAnswersView(APIView):
         WritingResults.objects.create(
             session=session_obj,
             test_id=test_id,
-            task1_text=data['report'],
-            task2_text=data['essay'],
+            task1_text=data.get('report', ''),
+            task1_word_count=data.get('word_count_report', 0),
+            task2_text=data.get('essay', ''),
+            task2_word_count=data.get('word_count_essay', 0),
         )
 
         return Response({"message": "Submitted successfully"}, status=status.HTTP_200_OK)
