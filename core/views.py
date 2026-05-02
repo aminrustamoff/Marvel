@@ -10,6 +10,26 @@ from rest_framework.views import APIView # type: ignore
 from rest_framework.response import Response # type: ignore
 from rest_framework import status # type: ignore
 
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+    Spacer
+)
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus.flowables import PageBreak
+
+from .models import (
+    ExamSession,
+    ResultsTable,
+    ListeningResults,
+    ReadingResults,
+    WritingResults
+)
+
 def home(request):
     exam_sessions = ExamSession.objects.filter(is_open=True)
     return render(request, 'core/home.html', {'exam_sessions' : exam_sessions})
@@ -244,12 +264,279 @@ class SubmitWritingAnswersView(APIView):
         return Response({"message": "Submitted successfully"}, status=status.HTTP_200_OK)
     
 
-def view_results(request, session_id):
-    listening_results = get_object_or_404(ListeningResults, session__session_id=session_id)
-    reading_results = get_object_or_404(ReadingResults, session__session_id=session_id)
-    writing_results = get_object_or_404(WritingResults, session__session_id=session_id)
+def view_results(request):
+
+    sessions = ExamSession.objects.all().order_by('-created_at')
+
     return render(request, 'core/results.html', {
-        'listening_results': listening_results,
-        'reading_results': reading_results,
-        'writing_results': writing_results
+        'sessions': sessions
     })
+
+
+def view_results_detail(request, session_id):
+
+    exam_session = get_object_or_404(
+        ExamSession,
+        id=session_id
+    )
+
+    results = ResultsTable.objects.filter(
+        exam_session=exam_session
+    ).order_by('-session_date')
+
+    students = []
+
+    for index, result in enumerate(results, start=1):
+
+        listening = ListeningResults.objects.filter(
+            session=result
+        ).first()
+
+        reading = ReadingResults.objects.filter(
+            session=result
+        ).first()
+
+        writing = WritingResults.objects.filter(
+            session=result
+        ).first()
+
+        students.append({
+            'number': index,
+            'result': result,
+            'listening': listening,
+            'reading': reading,
+            'writing': writing,
+        })
+
+    return render(request, 'core/results_detail.html', {
+        'exam_session': exam_session,
+        'students': students,
+    })
+
+def student_full_result(request, session_id):
+
+    result = get_object_or_404(
+        ResultsTable,
+        session_id=session_id
+    )
+
+    listening = ListeningResults.objects.filter(
+        session=result
+    ).first()
+
+    reading = ReadingResults.objects.filter(
+        session=result
+    ).first()
+
+    writing = WritingResults.objects.filter(
+        session=result
+    ).first()
+
+    return render(request, 'core/student_full_result.html', {
+        'result': result,
+        'listening': listening,
+        'reading': reading,
+        'writing': writing,
+    })
+
+def download_session_pdf(request, session_id):
+
+    exam_session = get_object_or_404(
+        ExamSession,
+        id=session_id
+    )
+
+    response = HttpResponse(
+        content_type='application/pdf'
+    )
+
+    response['Content-Disposition'] = (
+        f'attachment; filename="{exam_session.name}.pdf"'
+    )
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=18
+    )
+
+    styles = getSampleStyleSheet()
+
+    elements = []
+
+    # Title
+
+    title = Paragraph(
+        f"<b>{exam_session.name} - Results</b>",
+        styles['Title']
+    )
+
+    elements.append(title)
+    elements.append(Spacer(1, 20))
+
+    # Table Data
+
+    data = [[
+        'No',
+        'Full Name',
+        'Listening',
+        'Reading'
+    ]]
+
+    results = ResultsTable.objects.filter(
+        exam_session=exam_session
+    )
+
+    for index, result in enumerate(results, start=1):
+
+        listening = ListeningResults.objects.filter(
+            session=result
+        ).first()
+
+        reading = ReadingResults.objects.filter(
+            session=result
+        ).first()
+
+        listening_score = (
+            str(listening.listening_mark)
+            if listening else '-'
+        )
+
+        reading_score = (
+            str(reading.reading_mark)
+            if reading else '-'
+        )
+
+        data.append([
+            str(index),
+            result.username,
+            listening_score,
+            reading_score
+        ])
+
+    table = Table(data, colWidths=[50, 220, 100, 100])
+
+    table.setStyle(TableStyle([
+
+        ('BACKGROUND', (0, 0), (-1, 0), colors.black),
+
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+
+        ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+
+        ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+
+    ]))
+
+    elements.append(table)
+
+    elements.append(PageBreak())
+
+    # Detailed Results
+
+    for index, result in enumerate(results, start=1):
+
+        listening = ListeningResults.objects.filter(
+            session=result
+        ).first()
+
+        reading = ReadingResults.objects.filter(
+            session=result
+        ).first()
+
+        writing = WritingResults.objects.filter(
+            session=result
+        ).first()
+
+        student_title = Paragraph(
+            f"<b>{index}. {result.username}</b>",
+            styles['Heading2']
+        )
+
+        elements.append(student_title)
+        elements.append(Spacer(1, 10))
+
+        # Listening
+
+        if listening:
+
+            listening_text = Paragraph(
+                f"""
+                <b>Listening Score:</b>
+                {listening.listening_mark}
+                <br/>
+                <b>Correct Answers:</b>
+                {listening.listening_correct_count}
+                """,
+                styles['BodyText']
+            )
+
+            elements.append(listening_text)
+            elements.append(Spacer(1, 10))
+
+        # Reading
+
+        if reading:
+
+            reading_text = Paragraph(
+                f"""
+                <b>Reading Score:</b>
+                {reading.reading_mark}
+                <br/>
+                <b>Correct Answers:</b>
+                {reading.reading_correct_count}
+                """,
+                styles['BodyText']
+            )
+
+            elements.append(reading_text)
+            elements.append(Spacer(1, 10))
+
+        # Writing
+
+        if writing:
+
+            writing_text = Paragraph(
+                f"""
+                <b>Task 1 Word Count:</b>
+                {writing.task1_word_count}
+                <br/>
+                <b>Task 2 Word Count:</b>
+                {writing.task2_word_count}
+                """,
+                styles['BodyText']
+            )
+
+            elements.append(writing_text)
+            elements.append(Spacer(1, 10))
+
+            task1 = Paragraph(
+                f"<b>Task 1:</b><br/>{writing.task1_text}",
+                styles['BodyText']
+            )
+
+            task2 = Paragraph(
+                f"<b>Task 2:</b><br/>{writing.task2_text}",
+                styles['BodyText']
+            )
+
+            elements.append(task1)
+            elements.append(Spacer(1, 10))
+
+            elements.append(task2)
+            elements.append(Spacer(1, 20))
+
+        elements.append(Spacer(1, 30))
+
+    doc.build(elements)
+
+    return response

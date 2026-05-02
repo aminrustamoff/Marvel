@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Results Details</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #111827;
+        }
+
+        .page-subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #111827;
+            color: white;
+        }
+
+        th {
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: center;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .details-btn {
+            display: inline-block;
+            background: #16a34a;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .details-btn:hover {
+            background: #15803d;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 25px;
+            background: #374151;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+        }
+
+        .back-btn:hover {
+            background: #1f2937;
+        }
+
+        .download-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            background: #dc2626;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+        }
+
+        .download-btn:hover {
+            background: #b91c1c;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <a
+            href="{% url 'view_results' %}"
+            class="back-btn"
+        >
+            ← Back
+        </a>
+
+        <h1 class="page-title">
+            {{ exam_session.name }}
+        </h1>
+
+        <p class="page-subtitle">
+            Student Results
+        </p>
+
+        <a
+            href="{% url 'download_session_pdf' exam_session.id %}"
+            class="download-btn"
+        >
+            Download PDF
+        </a>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+                        <th>Full Name</th>
+                        <th>Listening Score</th>
+                        <th>Reading Score</th>
+                        <th>View Full Details</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for student in students %}
+
+                    <tr>
+
+                        <td>
+                            {{ student.number }}
+                        </td>
+
+                        <td>
+                            {{ student.result.username }}
+                        </td>
+
+                        <td>
+
+                            {% if student.listening %}
+                                {{ student.listening.listening_mark }}
+                            {% else %}
+                                -
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            {% if student.reading %}
+                                {{ student.reading.reading_mark }}
+                            {% else %}
+                                -
+                            {% endif %}
+
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'student_full_result' student.result.session_id %}"
+                                class="details-btn"
+                            >
+                                Open
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

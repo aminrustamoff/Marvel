@@ -10,5 +10,8 @@ urlpatterns = [
     path('api/submit/listening/', views.SubmitListeningAnswersView.as_view(), name='submit-answers-listening'),
     path('api/submit/reading/', views.SubmitReadingAnswersView.as_view(), name='submit-answers-reading'),
     path('api/submit/writing/', views.SubmitWritingAnswersView.as_view(), name='submit-answers-writing'),
-    path('results/<str:session_id>', views.view_results, name='view-results'),
+    path('results/', views.view_results, name='view_results'),
+    path('results/<str:session_id>/', views.view_results_detail, name='view_results_detail'),
+    path('student-result/<str:session_id>/', views.student_full_result, name='student_full_result'),
+    path('results/<int:session_id>/download-pdf/', views.download_session_pdf, name='download_session_pdf'),
 ]

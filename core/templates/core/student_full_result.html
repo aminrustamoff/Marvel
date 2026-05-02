@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Full Result</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 25px;
+            background: #374151;
+            color: white;
+            text-decoration: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+        }
+
+        .back-btn:hover {
+            background: #1f2937;
+        }
+
+        .title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #111827;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #111827;
+        }
+
+        .info-row {
+            margin-bottom: 14px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .answers-box {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <a
+            href="javascript:history.back()"
+            class="back-btn"
+        >
+            ← Back
+        </a>
+
+        <h1 class="title">
+            {{ result.username }}
+        </h1>
+
+        <p class="subtitle">
+            Session ID: {{ result.session_id }}
+        </p>
+
+        <!-- Listening -->
+
+        <div class="card">
+
+            <h2 class="section-title">
+                Listening Results
+            </h2>
+
+            {% if listening %}
+
+                <div class="info-row">
+                    <span class="label">Correct Answers:</span>
+                    {{ listening.listening_correct_count }}
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Band Score:</span>
+                    {{ listening.listening_mark }}
+                </div>
+
+                <div class="info-row">
+
+                    <span class="label">
+                        Answers:
+                    </span>
+
+                    <div class="answers-box">
+                        <pre>{{ listening.listening_row_answers }}</pre>
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <p>No listening results found.</p>
+
+            {% endif %}
+
+        </div>
+
+        <!-- Reading -->
+
+        <div class="card">
+
+            <h2 class="section-title">
+                Reading Results
+            </h2>
+
+            {% if reading %}
+
+                <div class="info-row">
+                    <span class="label">Correct Answers:</span>
+                    {{ reading.reading_correct_count }}
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Band Score:</span>
+                    {{ reading.reading_mark }}
+                </div>
+
+                <div class="info-row">
+
+                    <span class="label">
+                        Answers:
+                    </span>
+
+                    <div class="answers-box">
+                        <pre>{{ reading.reading_row_answers }}</pre>
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <p>No reading results found.</p>
+
+            {% endif %}
+
+        </div>
+
+        <!-- Writing -->
+
+        <div class="card">
+
+            <h2 class="section-title">
+                Writing Results
+            </h2>
+
+            {% if writing %}
+
+                <div class="info-row">
+                    <span class="label">Task 1 Word Count:</span>
+                    {{ writing.task1_word_count }}
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Task 2 Word Count:</span>
+                    {{ writing.task2_word_count }}
+                </div>
+
+                <div class="info-row">
+
+                    <span class="label">
+                        Task 1 Response:
+                    </span>
+
+                    <div class="answers-box">
+                        <pre>{{ writing.task1_text }}</pre>
+                    </div>
+
+                </div>
+
+                <div class="info-row">
+
+                    <span class="label">
+                        Task 2 Response:
+                    </span>
+
+                    <div class="answers-box">
+                        <pre>{{ writing.task2_text }}</pre>
+                    </div>
+
+                </div>
+
+            {% else %}
+
+                <p>No writing results found.</p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

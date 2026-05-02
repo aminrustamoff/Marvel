@@ -1,25 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
 
-{% load static %}
-<div class="results-container">
-    <h1>Test Results</h1>
-    
-    <div class="results-section">
-        <h2>Listening Section</h2>
-        <p><strong>Band Score:</strong> {{ listening_results.listening_mark }}</p>
-        <p><strong>Correct Answers:</strong> {{ listening_results.listening_correct_count }} out of 40</p>
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Exam Sessions</title>
+
+    <style>
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 25px;
+            color: #111827;
+        }
+
+        .table-wrapper {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: #111827;
+            color: white;
+        }
+
+        th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tbody tr:hover {
+            background: #f9fafb;
+        }
+
+        .view-btn {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+
+        .view-btn:hover {
+            background: #1d4ed8;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1 class="page-title">
+            Exam Sessions
+        </h1>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>No</th>
+                        <th>Session Name</th>
+                        <th>Description</th>
+                        <th>Created At</th>
+                        <th>Open Results</th>
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    {% for session in sessions %}
+
+                    <tr>
+
+                        <td>
+                            {{ forloop.counter }}
+                        </td>
+
+                        <td>
+                            {{ session.name }}
+                        </td>
+
+                        <td>
+                            {{ session.description }}
+                        </td>
+
+                        <td>
+                            {{ session.created_at }}
+                        </td>
+
+                        <td>
+
+                            <a
+                                href="{% url 'view_results_detail' session.id %}"
+                                class="view-btn"
+                            >
+                                View
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
     </div>
 
-    <div class="results-section">
-        <h2>Reading Section</h2>
-        <p><strong>Band Score:</strong> {{ reading_results.reading_mark }}</p>
-        <p><strong>Correct Answers:</strong> {{ reading_results.reading_correct_count }} out of 40</p>
-    </div>
+</body>
 
-    <div class="results-section">
-        <h2>Writing Section</h2>
-        <p><strong>Task 1:</strong> {{ writing_results.task1_text }}</p>
-        <p><strong>Task 2:</strong> {{ writing_results.task2_text }}</p>
-    </div>
-
-    <!-- Add more sections for Speaking if needed -->
-</div>
+</html>
