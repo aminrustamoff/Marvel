@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import scrolledtext, messagebox
+from tkinter import scrolledtext, messagebox, filedialog
 import subprocess
 import threading
 import socket
@@ -15,6 +15,7 @@ import ctypes
 
 # Automatically gets current folder
 DJANGO_PROJECT_PATH = os.path.dirname(os.path.abspath(__file__))
+print(f"Django Project Path: {DJANGO_PROJECT_PATH}")
 
 # Change this if needed
 DJANGO_PORT = 8000
@@ -35,6 +36,7 @@ TERMINAL_TEXT = "#50703f"
 # =========================
 
 django_process = None
+selected_project_path = os.path.dirname(os.path.abspath(__file__))
 
 
 # =========================
@@ -76,15 +78,16 @@ def start_server():
 
         django_process = subprocess.Popen(
             command,
-            cwd=DJANGO_PROJECT_PATH,
+            cwd=selected_project_path,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
             bufsize=1,
-            shell=True
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP  # IMPORTANT (Windows)
         )
 
         log_terminal.insert(tk.END, f"Starting Django server at {ip}:{DJANGO_PORT}\n\n")
+        log_terminal.insert(tk.END, f"Using project path: {selected_project_path}\n\n")
         log_terminal.see(tk.END)
 
         threading.Thread(target=read_logs, daemon=True).start()
@@ -104,12 +107,14 @@ def stop_server():
         return
 
     try:
-        if os.name == "nt":
-            django_process.send_signal(signal.CTRL_BREAK_EVENT)
-        else:
-            django_process.terminate()
+        if django_process.poll() is None:  # still running
+            if os.name == "nt":
+                django_process.send_signal(signal.CTRL_BREAK_EVENT)
+            else:
+                django_process.terminate()
 
-        django_process.kill()
+            django_process.wait(timeout=5)
+
         django_process = None
 
         log_terminal.insert(tk.END, "\nDjango server stopped.\n")
@@ -117,7 +122,6 @@ def stop_server():
 
     except Exception as e:
         messagebox.showerror("Error", str(e))
-
 
 # =========================
 # READ TERMINAL LOGS
@@ -170,6 +174,18 @@ def on_close():
 
 
 # =========================
+# CHOOSE PROJECT DIRECTORY
+# =========================
+def choose_project_directory():
+    global selected_project_path
+    directory = filedialog.askdirectory(title="Select Django Project Directory")
+    if directory:
+        selected_project_path = directory
+        log_terminal.insert(tk.END, f"Selected project path: {selected_project_path}\n")
+        log_terminal.see(tk.END)
+
+
+# =========================
 # HOVER EFFECTS
 # =========================
 def on_enter(e):
@@ -201,7 +217,7 @@ root.title("Marvel - Mock Test Server Launcher")
 # root.iconbitmap("marvel.ico")
 
 # Modern higher resolution
-root.geometry("900x600")
+root.geometry("1000x700")
 
 # Disable resizing
 root.resizable(False, False)
@@ -264,8 +280,8 @@ terminal_frame.pack_propagate(False)
 
 log_terminal = scrolledtext.ScrolledText(
     terminal_frame,
-    width=140,
-    height=35,
+    width=180,
+    height=80,
     bg=SECOND_BG,
     fg=TERMINAL_TEXT,
     insertbackground=TEXT_COLOR,
@@ -291,7 +307,7 @@ bottom_frame.pack(pady=(0, 25))
 
 button_style = {
     "font": ("Segoe UI", 11, "bold"),
-    "width": 18,
+    "width": 16,
     "height": 2,
     "bg": BUTTON_BG,
     "fg": TEXT_COLOR,
@@ -311,6 +327,15 @@ start_button = tk.Button(
 
 start_button.grid(row=0, column=0, padx=8)
 
+choose_button = tk.Button(
+    bottom_frame,
+    text="Choose Project",
+    command=choose_project_directory,
+    **button_style
+)
+
+choose_button.grid(row=0, column=1, padx=8)
+
 admin_button = tk.Button(
     bottom_frame,
     text="Open Admin Panel",
@@ -318,7 +343,7 @@ admin_button = tk.Button(
     **button_style
 )
 
-admin_button.grid(row=0, column=1, padx=8)
+admin_button.grid(row=0, column=2, padx=8)
 
 results_button = tk.Button(
     bottom_frame,
@@ -327,7 +352,7 @@ results_button = tk.Button(
     **button_style
 )
 
-results_button.grid(row=0, column=2, padx=8)
+results_button.grid(row=0, column=3, padx=8)
 
 stop_button = tk.Button(
     bottom_frame,
@@ -336,7 +361,7 @@ stop_button = tk.Button(
     **button_style
 )
 
-stop_button.grid(row=0, column=3, padx=8)
+stop_button.grid(row=0, column=4, padx=8)
 
 # =========================
 # BUTTON HOVER EFFECTS
@@ -344,6 +369,7 @@ stop_button.grid(row=0, column=3, padx=8)
 
 buttons = [
     start_button,
+    choose_button,
     admin_button,
     results_button,
     stop_button

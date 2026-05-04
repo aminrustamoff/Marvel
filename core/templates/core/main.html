@@ -311,7 +311,7 @@
                 {% if listening_done %}
                     <span class="done-badge">✓ Completed</span>
                 {% else %}
-                    <a href="listening/1" class="section-link-disabled" id="listening-link">
+                    <a href="listening/{{ listening_id_random }}" class="section-link-disabled" id="listening-link">
                         <img class="icon" src="{% static 'core/icons/arrow-right.svg' %}" alt="Arrow" style="width:16px; vertical-align:middle; margin-right:6px; fill: #fff;">
                         Start Listening
                     </a>
@@ -346,7 +346,7 @@
                 {% if reading_done %}
                     <span class="done-badge">✓ Completed</span>
                 {% else %}
-                    <a href="reading/1" class="section-link-disabled" id="reading-link">
+                    <a href="reading/{{ reading_id_random }}" class="section-link-disabled" id="reading-link">
                         <img class="icon" src="{% static 'core/icons/arrow-right.svg' %}" alt="Arrow" style="width:16px; vertical-align:middle; margin-right:6px; color: #fff;">
                         Start Reading
                     </a>
@@ -381,7 +381,7 @@
                 {% if writing_done %}
                     <span class="done-badge">✓ Completed</span>
                 {% else %}
-                    <a href="writing/1/1" class="section-link-disabled" id="writing-link">
+                    <a href="writing/{{ writing_1_id_random }}/{{ writing_2_id_random }}" class="section-link-disabled" id="writing-link">
                         <img class="icon" src="{% static 'core/icons/arrow-right.svg' %}" alt="Arrow" style="width:16px; vertical-align:middle; margin-right:6px; color: #fff;">
                         Start Writing
                     </a>
@@ -390,7 +390,7 @@
         </div>
 
         {% if writing_done %}
-            <button class="section-link" style="margin-top: 30px; width: 100%;" onclick="window.location.href='/'">Finish Test</button>
+            <button class="section-link" style="margin-top: 30px; width: 100%;" onclick="window.location.href='/finish/'">Finish Test</button>
         {% endif %}
 
         <br/>

@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse, get_object_or_404, redirect
 from .models import ListeningTest, ReadingTest, WritingTask1, WritingTask2, ResultsTable, ListeningResults, ReadingResults, WritingResults, ExamSession
 import uuid
+import random
 from .utils.text_to_html import convert
 from .utils.normilizer import prepare
 from .utils.marker import get_listening_band, get_reading_band
@@ -30,6 +31,15 @@ from .models import (
     WritingResults
 )
 
+# Qeustion ID randomizer variables
+
+first_time = True
+listening_id_random = 0
+reading_id_random = 0
+writing_1_id_random = 0
+writing_2_id_random = 0
+
+
 def home(request):
     exam_sessions = ExamSession.objects.filter(is_open=True)
     return render(request, 'core/home.html', {'exam_sessions' : exam_sessions})
@@ -54,9 +64,33 @@ def main(request):
 
         request.session['current_exam_id'] = new_entry.session_id
         return redirect('main')
+    
+    global first_time
+    if first_time:
+        global listening_id_random
+        global reading_id_random
+        global writing_1_id_random
+        global writing_2_id_random
+
+        first_time = False
+        
+        l_ids = list(ListeningTest.objects.filter(is_active=True).values_list('id', flat=True))
+        r_ids = list(ReadingTest.objects.filter(is_active=True).values_list('id', flat=True))
+        w1_ids = list(WritingTask1.objects.filter(is_active=True).values_list('id', flat=True))
+        w2_ids = list(WritingTask2.objects.filter(is_active=True).values_list('id', flat=True))
+
+        listening_id_random = random.choice(l_ids) if l_ids else None
+        reading_id_random = random.choice(r_ids) if r_ids else None
+        writing_1_id_random = random.choice(w1_ids) if w1_ids else None
+        writing_2_id_random = random.choice(w2_ids) if w2_ids else None
+
     session_id = request.session.get('current_exam_id')
     context = {
         'session_id' : session_id,
+        'listening_id_random': listening_id_random,
+        'reading_id_random': reading_id_random,
+        'writing_1_id_random': writing_1_id_random,
+        'writing_2_id_random': writing_2_id_random,
         'listening_done': False,
         'reading_done': False,
         'writing_done': False,
@@ -144,6 +178,12 @@ def writing(request, pk1, pk2):
         'task_1_html' : task_1_html,
         'task_2_html' : task_2_html,
     })
+
+def finish(request):
+    session_id = request.session.get('current_exam_id')
+    if session_id:
+        request.session.pop('current_exam_id')
+    return render(request, 'core/finish.html')
 
 
 class SubmitListeningAnswersView(APIView):

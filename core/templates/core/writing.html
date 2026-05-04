@@ -12,7 +12,6 @@
   <span id="session-id">{{ session_id }}</span>
 </div>
 <button id="submit-btn" onclick="submitAnswers()">Submit</button>
-<img class="nav-icon" src="{% static 'core/icons/edit.svg' %}">
 {% endblock %}
 
 {% block content %}
@@ -303,12 +302,6 @@
     cursor: pointer;
 }
 .highlighted:hover { background: #ffe788; }
-.highlighted-note {
-    background: #b2f0f0;
-    border-radius: 2px;
-    cursor: pointer;
-}
-.highlighted-note:hover { background: #7de0e0; }
 
 </style>
 
@@ -369,7 +362,6 @@
 <!-- SELECTION POPUP -->
 <div id="selection-popup" style="display:none;">
     <button onclick="doHighlight()"><span>Highlight</span></button>
-    <button onclick="doNote()"><span>Note</span></button>
 </div>
 
 <!-- ── BOTTOM TAB BAR ──────────────────────────────── -->
@@ -421,6 +413,7 @@ document.getElementById('start-btn').addEventListener('click', () => {
   wrapper.style.display = 'flex';
   showTask(1);
   startTimer();
+  enableHighlight();
 });
 
 
@@ -454,6 +447,52 @@ function startTimer() {
       timerEl.className   = '';
     }
   }, 1000);
+}
+
+/* ═══════════════════════════════════════════════════
+   HIGHLIGHT & NOTES
+   ═══════════════════════════════════════════════════ */
+
+let _savedRange = null;
+let _savedText  = '';
+
+function enableHighlight() {
+    document.getElementById('writing-wrapper').addEventListener('mouseup', () => {
+        const sel = window.getSelection();
+        if (!sel || sel.isCollapsed) { hidePopup(); return; }
+        const text = sel.toString().trim();
+        if (!text) { hidePopup(); return; }
+        _savedRange = sel.getRangeAt(0).cloneRange();
+        _savedText  = text;
+        const rect  = sel.getRangeAt(0).getBoundingClientRect();
+        const popup = document.getElementById('selection-popup');
+        popup.style.display = 'flex';
+        popup.style.top     = (rect.top + window.scrollY - popup.offsetHeight - 10) + 'px';
+        popup.style.left    = (rect.left + rect.width / 2) + 'px';
+    });
+    document.addEventListener('mousedown', e => {
+        if (!document.getElementById('selection-popup').contains(e.target)) hidePopup();
+    });
+}
+
+function hidePopup() {
+    document.getElementById('selection-popup').style.display = 'none';
+    _savedRange = null;
+    _savedText  = '';
+}
+
+function doHighlight() {
+    if (!_savedRange) return;
+    const span = document.createElement('span');
+    span.className = 'highlighted';
+    span.addEventListener('click', () => {
+        const p = span.parentNode;
+        while (span.firstChild) p.insertBefore(span.firstChild, span);
+        p.removeChild(span);
+    });
+    try { _savedRange.surroundContents(span); } catch(e) {}
+    window.getSelection().removeAllRanges();
+    hidePopup();
 }
 
 

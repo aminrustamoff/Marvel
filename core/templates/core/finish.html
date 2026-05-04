@@ -1,0 +1,174 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Test Complete — Marvel Academy LC</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google Font (Modern Arial-like) -->
+
+  <style>
+    @font-face {
+        font-family: 'Inter';
+        src: url('{% static "core/fonts/Inter_18pt-Regular.ttf" %}') format('truetype');
+        font-weight: 400;
+    }
+    @font-face {
+        font-family: 'Inter';
+        src: url('{% static "core/fonts/Inter_18pt-SemiBold.ttf" %}') format('truetype');
+        font-weight: 600;
+    }
+    @font-face {
+        font-family: 'Inter';
+        src: url('{% static "core/fonts/Inter_18pt-Black.ttf" %}') format('truetype');
+        font-weight: 900;
+    }
+
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', Arial, sans-serif;
+    }
+
+    body {
+      background: #ffffff;
+      color: #111;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .container {
+      max-width: 700px;
+      padding: 20px;
+      animation: fadeIn 1.2s ease forwards;
+    }
+
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #E41837;
+      margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 1s ease forwards;
+      animation-delay: 0.3s;
+    }
+
+    p {
+      font-size: 1.2rem;
+      font-weight: 500;
+      margin-bottom: 30px;
+      line-height: 1.6;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 1s ease forwards;
+      animation-delay: 0.7s;
+    }
+
+    .brand {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-top: 20px;
+      color: #000;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: slideUp 1s ease forwards;
+      animation-delay: 1.1s;
+    }
+
+    .footer {
+      margin-top: 40px;
+      font-size: 0.8rem;
+      color: #666;
+      opacity: 0;
+      animation: fadeIn 1s ease forwards;
+      animation-delay: 1.5s;
+    }
+
+    .loader {
+      margin: 30px auto 0;
+      width: 50px;
+      height: 50px;
+      border: 4px solid #eee;
+      border-top: 4px solid #E41837;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+        
+    .dev-message-container {
+      display: flex;
+      align-items: center;
+      width: 500px;
+    }
+
+    .dev-message-container .dev-message {
+      color: rgb(212, 212, 212);
+      font-size: 0.9rem;
+      margin-right: 20px;
+      font-family: 'Arial', italic, 8px;
+      white-space: normal;
+    }
+
+    @keyframes slideUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+
+  <script>
+    // Redirect after 15 seconds
+    setTimeout(function () {
+      window.location.href = "/";
+    }, 30000);
+  </script>
+
+</head>
+<body>
+
+  <div class="container">
+    <h1>Congratulations!</h1>
+
+    <p>
+      You have finished the test.<br>
+      We will release the results soon.<br>
+      Thank you for taking your IELTS Mock Test with us!
+    </p>
+
+    <div class="brand">MARVEL ACADEMY LC</div>
+
+    <div class="loader"></div>
+
+    <div class="footer">
+      The system is developed by Aminjon Rustamov.
+      <div class="dev-message-container">
+        <spam class="dev-message">This system has some issues and bugs, if you find any, please report them to me through telegram: @amin_rustamovv</spam>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
