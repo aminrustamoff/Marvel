@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
+from django.urls import reverse
 from .models import ListeningTest, ListeningTestImage, ReadingTest, ReadingTestImage, WritingTask1, WritingTask1Images, WritingTask2, ExamSession
 
 
@@ -31,7 +32,7 @@ class ExamSessionAdmin(admin.ModelAdmin):
 
 @admin.register(ListeningTest)
 class ListeningTestAdmin(admin.ModelAdmin):
-    list_display = ('test_title', 'author', 'get_duration_display', 'is_active', 'created_at')
+    list_display = ('test_title', 'author', 'get_duration_display', 'is_active', 'preview_link', 'created_at')
     list_display_links = ('test_title',)
     list_filter = ('is_active', 'author', 'created_at')
     list_editable = ('is_active',)
@@ -47,10 +48,15 @@ class ListeningTestAdmin(admin.ModelAdmin):
         return "0:00"
     get_duration_display.short_description = "Duration"
 
+    def preview_link(self, obj):
+        url = reverse('preview', args=['listening', obj.pk])
+        return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">Preview</a>', url)
+    preview_link.short_description = 'Preview'
+
 
 @admin.register(ReadingTest)
 class ReadingTestAdmin(admin.ModelAdmin):
-    list_display = ('test_title', 'author', 'is_active', 'created_at')
+    list_display = ('test_title', 'author', 'is_active', 'preview_link', 'created_at')
     list_display_links = ('test_title',)
     list_filter = ('is_active', 'author', 'created_at')
     list_editable = ('is_active',)
@@ -81,9 +87,14 @@ class ReadingTestAdmin(admin.ModelAdmin):
         }),
     )
 
+    def preview_link(self, obj):
+        url = reverse('preview', args=['reading', obj.pk])
+        return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">Preview</a>', url)
+    preview_link.short_description = 'Preview'
+
 @admin.register(WritingTask1)
 class WritingTask1Admin(admin.ModelAdmin):
-    list_display = ('test_title', 'question_type', 'author', 'is_active', 'created_at')
+    list_display = ('test_title', 'question_type', 'author', 'is_active', 'preview_link', 'created_at')
     list_display_links = ('test_title',)
     list_filter = ('question_type','is_active', 'author', 'created_at',)
     list_editable = ('is_active',)
@@ -92,12 +103,22 @@ class WritingTask1Admin(admin.ModelAdmin):
     ordering = ('-created_at',)
     inlines = [WrititngTestImageInline]
 
+    def preview_link(self, obj):
+        url = reverse('preview', args=['writing-task-1', obj.pk])
+        return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">Preview</a>', url)
+    preview_link.short_description = 'Preview'
+
 @admin.register(WritingTask2)
 class WritingTask2Admin(admin.ModelAdmin):
-    list_display = ('test_title', 'question_type', 'author', 'is_active', 'created_at')
+    list_display = ('test_title', 'question_type', 'author', 'is_active', 'preview_link', 'created_at')
     list_display_links = ('test_title',)
     list_filter = ('question_type','is_active', 'author', 'created_at',)
     list_editable = ('is_active',)
     search_fields = ('test_title',)
     readonly_fields = ('created_at',)
     ordering = ('-created_at',)
+
+    def preview_link(self, obj):
+        url = reverse('preview', args=['writing-task-2', obj.pk])
+        return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">Preview</a>', url)
+    preview_link.short_description = 'Preview'

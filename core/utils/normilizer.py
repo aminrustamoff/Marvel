@@ -39,15 +39,3 @@ def prepare(context):
             dict_answers[key] = processed_variants
 
     return dict_answers
-
-# --- Example Usage ---
-# context = """
-# 1 Aminjon Rustamov * 
-# 2 Samarkand / Samarkand city *
-# 3 three/3
-# 4 Dog
-# 5 Cat
-# """
-
-# import json
-# print(json.dumps(prepare(context), indent=4))

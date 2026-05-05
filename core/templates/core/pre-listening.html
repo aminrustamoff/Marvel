@@ -1,0 +1,28 @@
+{% extends 'core/pre_base.html' %}
+{% load static %}
+
+{% block title %}Preview listening{% endblock %}
+
+{% block content %}
+<div class="main-area">
+    <h2>This is the preview listening section.</h2>
+    <div class="content-container">
+        <span class="title">Section 1</span>
+        <div class="section">
+            {{section1_html|safe}}
+        </div>
+        <span class="title">Section 2</span>
+        <div class="section">
+            {{section2_html|safe}}
+        </div>
+        <span class="title">Section 3</span>
+        <div class="section">
+            {{section3_html|safe}}
+        </div>
+        <span class="title">Section 4</span>
+        <div class="section">
+            {{section4_html|safe}}
+        </div>
+    </div>
+</div>
+{% endblock %}

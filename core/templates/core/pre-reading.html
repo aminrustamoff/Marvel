@@ -1,0 +1,33 @@
+{% extends 'core/pre_base.html' %}
+{% load static %}
+
+{% block title %}Preview reading{% endblock %}
+
+{% block content %}
+<div class="main-area">
+    <h2>This is the preview reading section.</h2>
+    <div class="content-container">
+        <span class="title">Passage 1</span>
+        <div class="section">
+            {{passage_1_html|safe}}
+        </div>
+        <div class="section">
+            {{passage_1_test_html|safe}}
+        </div>
+        <span class="title">Passage 2</span>
+        <div class="section">
+            {{passage_2_html|safe}}
+        </div>
+        <div class="section">
+            {{passage_2_test_html|safe}}
+        </div>
+        <span class="title">Passage 3</span>
+        <div class="section">
+            {{passage_3_html|safe}}
+        </div>
+        <div class="section">
+            {{passage_3_test_html|safe}}
+        </div>
+    </div>
+</div>
+{% endblock %}

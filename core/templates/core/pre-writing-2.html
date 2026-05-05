@@ -1,0 +1,15 @@
+{% extends 'core/pre_base.html' %}
+{% load static %}
+
+{% block title %}Preview Writing Task 2{% endblock %}
+{% block content %}
+<div class="main-area">
+    <h2>This is the preview writing section.</h2>
+    <div class="content-container">
+        <span class="title">Writing Task 2</span>
+        <div class="section">
+            {{task_2_html|safe}}
+        </div>
+    </div>
+</div>
+{% endblock %}  

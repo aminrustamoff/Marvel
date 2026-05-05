@@ -15,4 +15,5 @@ urlpatterns = [
     path('results/<str:session_id>/', views.view_results_detail, name='view_results_detail'),
     path('student-result/<str:session_id>/', views.student_full_result, name='student_full_result'),
     path('results/<int:session_id>/download-pdf/', views.download_session_pdf, name='download_session_pdf'),
+    path('preview/<str:section>/<int:pk>/', views.preview, name='preview'),
 ]

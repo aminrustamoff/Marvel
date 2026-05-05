@@ -185,6 +185,70 @@ def finish(request):
         request.session.pop('current_exam_id')
     return render(request, 'core/finish.html')
 
+def preview(request, section, pk):
+
+    if section == 'listening':
+        test = get_object_or_404(ListeningTest, pk=pk)
+    
+        images = {img.label: img.image.url for img in test.images.all()}
+
+        section1_html = convert(test.section_1 or '', images)
+        section2_html = convert(test.section_2 or '', images)
+        section3_html = convert(test.section_3 or '', images)
+        section4_html = convert(test.section_4 or '', images)
+
+        content = {
+                'test': test,
+                'section1_html': section1_html,
+                'section2_html': section2_html,
+                'section3_html': section3_html,
+                'section4_html': section4_html,
+            }
+        return render(request, 'core/pre-listening.html', content)
+
+    elif section == 'reading':
+        reading_test = get_object_or_404(ReadingTest, pk=pk)
+    
+        images = {img.label: img.image.url for img in reading_test.images.all()}
+
+        passage_1_html = convert(reading_test.passage_1 or '', images)
+        passage_2_html = convert(reading_test.passage_2 or '', images)
+        passage_3_html = convert(reading_test.passage_3 or '', images)
+        passage_1_test_html = convert(reading_test.passage_1_test or '', images)
+        passage_2_test_html = convert(reading_test.passage_2_test or '', images)
+        passage_3_test_html = convert(reading_test.passage_3_test or '', images)
+
+        content = {
+                'test': reading_test,
+                'passage_1_html' : passage_1_html,
+                'passage_2_html' : passage_2_html,
+                'passage_3_html' : passage_3_html,
+                'passage_1_test_html' : passage_1_test_html,
+                'passage_2_test_html' : passage_2_test_html,
+                'passage_3_test_html' : passage_3_test_html,
+            }
+        return render(request, 'core/pre-reading.html', content)
+
+    elif section == 'writing-task-1':
+        task_1 = get_object_or_404(WritingTask1, pk=pk)
+        images = {img.label: img.image.url for img in task_1.images.all()}
+
+        task_1_html = convert(task_1.question or '', images)
+
+        return render(request, 'core/pre-writing-1.html', {
+            'task_1_html': task_1_html,
+        })
+
+    elif section == 'writing-task-2':
+        task_2 = get_object_or_404(WritingTask2, pk=pk)
+        task_2_html = convert(task_2.question or '')
+
+        return render(request, 'core/pre-writing-2.html', {
+            'task_2_html': task_2_html,
+        })
+
+    else:
+        return HttpResponse("Invalid section", status=400)  
 
 class SubmitListeningAnswersView(APIView):
     def post(self, request):
