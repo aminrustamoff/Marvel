@@ -23,6 +23,28 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus.flowables import PageBreak
 
+from xml.sax.saxutils import escape
+
+def preserve_newlines(text):
+    if not text:
+        return ""
+
+    text = str(text)
+
+    # If your database contains literal Word-style marks like ^p
+    text = text.replace("^p", "\n")
+
+    # Normalize Windows/Mac/Linux newlines
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+
+    # Escape unsafe XML/HTML characters
+    text = escape(text)
+
+    # Convert new lines to ReportLab line breaks
+    text = text.replace("\n", "<br/>")
+
+    return text
+
 from .models import (
     ExamSession,
     ResultsTable,
@@ -427,10 +449,21 @@ def student_full_result(request, session_id):
     listening = ListeningResults.objects.filter(
         session=result
     ).first()
+    try:
+        listening_test = get_object_or_404(ListeningTest, id=int(listening.test_id))
+        listening_answers = prepare(listening_test.answers)
+
+    except:
+        listening_answers = []
 
     reading = ReadingResults.objects.filter(
         session=result
     ).first()
+    try:
+        reading_test = get_object_or_404(ReadingTest, id=int(reading.test_id))
+        reading_answers = prepare(reading_test.answers)
+    except:
+        reading_answers = []
 
     writing = WritingResults.objects.filter(
         session=result
@@ -439,7 +472,9 @@ def student_full_result(request, session_id):
     return render(request, 'core/student_full_result.html', {
         'result': result,
         'listening': listening,
+        'listening_answers': listening_answers,
         'reading': reading,
+        'reading_answers': reading_answers,
         'writing': writing,
     })
 
@@ -608,14 +643,11 @@ def download_session_pdf(request, session_id):
         # Writing
 
         if writing:
-
             writing_text = Paragraph(
                 f"""
-                <b>Task 1 Word Count:</b>
-                {writing.task1_word_count}
+                <b>Task 1 Word Count:</b> {writing.task1_word_count}
                 <br/>
-                <b>Task 2 Word Count:</b>
-                {writing.task2_word_count}
+                <b>Task 2 Word Count:</b> {writing.task2_word_count}
                 """,
                 styles['BodyText']
             )
@@ -623,13 +655,16 @@ def download_session_pdf(request, session_id):
             elements.append(writing_text)
             elements.append(Spacer(1, 10))
 
+            task1_text = preserve_newlines(writing.task1_text)
+            task2_text = preserve_newlines(writing.task2_text)
+
             task1 = Paragraph(
-                f"<b>Task 1:</b><br/>{writing.task1_text}",
+                f"<b>Task 1:</b><br/>{task1_text}",
                 styles['BodyText']
             )
 
             task2 = Paragraph(
-                f"<b>Task 2:</b><br/>{writing.task2_text}",
+                f"<b>Task 2:</b><br/>{task2_text}",
                 styles['BodyText']
             )
 

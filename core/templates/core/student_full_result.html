@@ -1,3 +1,4 @@
+{% load dict_extras %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -83,6 +84,37 @@
             margin-top: 10px;
         }
 
+        .answers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .answers-table th,
+        .answers-table td {
+            border: 1px solid #d1d5db;
+            padding: 14px 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .answers-table th {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .answers-table tr.correct {
+            background: #ecfdf5;
+        }
+
+        .answers-table tr.incorrect {
+            background: #fee2e2;
+        }
+
+        .answers-table td.status {
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
         pre {
             white-space: pre-wrap;
             word-wrap: break-word;
@@ -138,7 +170,40 @@
                     </span>
 
                     <div class="answers-box">
-                        <pre>{{ listening.listening_row_answers }}</pre>
+                        <table class="answers-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Answer</th>
+                                    <th>User answer</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in listening.listening_row_answers.items %}
+                                    {% if key != "id" %}
+                                        {% with correct_answers=listening_answers|get_item:key %}
+                                            {% if value in correct_answers %}
+                                                <tr class="correct">
+                                            {% else %}
+                                                <tr class="incorrect">
+                                            {% endif %}
+                                                <td>{{ forloop.counter|add:-1 }}</td>
+                                                <td>{{ correct_answers }}</td>
+                                                <td>{{ value }}</td>
+                                                <td class="status">
+                                                    {% if value in correct_answers %}
+                                                        ✅ Correct
+                                                    {% else %}
+                                                        ❌ Incorrect
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
                 </div>
@@ -178,7 +243,40 @@
                     </span>
 
                     <div class="answers-box">
-                        <pre>{{ reading.reading_row_answers }}</pre>
+                        <table class="answers-table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Answer</th>
+                                    <th>User answer</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for key, value in reading.reading_row_answers.items %}
+                                    {% if key != "id" %}
+                                        {% with correct_answers=reading_answers|get_item:key %}
+                                            {% if value in correct_answers %}
+                                                <tr class="correct">
+                                            {% else %}
+                                                <tr class="incorrect">
+                                            {% endif %}
+                                                <td>{{ forloop.counter|add:-1 }}</td>
+                                                <td>{{ correct_answers }}</td>
+                                                <td>{{ value }}</td>
+                                                <td class="status">
+                                                    {% if value in correct_answers %}
+                                                        ✅ Correct
+                                                    {% else %}
+                                                        ❌ Incorrect
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
 
                 </div>

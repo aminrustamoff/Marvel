@@ -7,7 +7,8 @@
   <title>Test Complete — Marvel Academy LC</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Google Font (Modern Arial-like) -->
+  <!-- Fallback redirect in case JS fails -->
+  <meta http-equiv="refresh" content="20;url=/">
 
   <style>
     @font-face {
@@ -139,13 +140,6 @@
     }
   </style>
 
-  <script>
-    // Redirect after 15 seconds
-    setTimeout(function () {
-      window.location.href = "/";
-    }, 30000);
-  </script>
-
 </head>
 <body>
 
@@ -165,10 +159,44 @@
     <div class="footer">
       The system is developed by Aminjon Rustamov.
       <div class="dev-message-container">
-        <spam class="dev-message">This system has some issues and bugs, if you find any, please report them to me through telegram: @amin_rustamovv</spam>
+        <span class="dev-message">This system has some issues and bugs, if you find any, please report them to me through telegram: @amin_rustamovv</span>
       </div>
     </div>
   </div>
+
+  <script>
+    (function () {
+      var delay = 30000;
+      var redirectTo = "/";
+
+      function doRedirect() {
+        try {
+          window.location.replace(redirectTo);
+        } catch (e) {
+          window.location.href = redirectTo;
+        }
+      }
+
+      // Primary: setTimeout
+      var timer = setTimeout(doRedirect, delay);
+
+      // Safety net: if the tab becomes visible again after being hidden
+      // (e.g. user switched tabs), restart the countdown from where it left off
+      var startTime = Date.now();
+      document.addEventListener("visibilitychange", function () {
+        if (!document.hidden) {
+          var elapsed = Date.now() - startTime;
+          var remaining = delay - elapsed;
+          if (remaining <= 0) {
+            doRedirect();
+          } else {
+            clearTimeout(timer);
+            timer = setTimeout(doRedirect, remaining);
+          }
+        }
+      });
+    })();
+  </script>
 
 </body>
 </html>
